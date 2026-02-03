@@ -59,6 +59,49 @@ cd ../backend && npm install
 docker-compose up -d
 ```
 
+## Deployment
+
+### Prerequisites
+
+- A server with Docker and Docker Compose installed
+- Domain name (optional for production deployment)
+- SSL certificates (or use Let's Encrypt)
+
+### Production Deployment Steps
+
+1. Clone the repository on your production server:
+   ```bash
+   git clone https://github.com/jbhuiyan-matc/ZenShop.git
+   cd ZenShop
+   ```
+
+2. Create a production environment file:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your production settings
+   nano .env
+   ```
+
+3. Add SSL certificates:
+   ```bash
+   mkdir -p infra/nginx/ssl
+   # Add your SSL certificates to this directory
+   # fullchain.pem and privkey.pem
+   ```
+
+4. Run the deployment script:
+   ```bash
+   ./deploy.sh
+   ```
+
+5. Configure your firewall according to the network architecture diagram
+
+### Deployment Files
+
+- `docker-compose.prod.yml`: Production container configuration
+- `deploy.sh`: Deployment automation script
+- `infra/nginx/nginx.prod.conf`: Production-ready Nginx configuration with security headers
+
 ## Project Structure
 
 ```

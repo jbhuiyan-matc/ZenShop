@@ -1,0 +1,54 @@
+FROM nginx:alpine
+
+# Install ModSecurity dependencies
+RUN apk add --no-cache \
+    gcc \
+    libc-dev \
+    make \
+    openssl-dev \
+    pcre-dev \
+    zlib-dev \
+    linux-headers \
+    libxslt-dev \
+    gd-dev \
+    geoip-dev \
+    perl-dev \
+    libedit-dev \
+    mercurial \
+    alpine-sdk \
+    findutils \
+    curl
+
+# Build and install ModSecurity
+RUN mkdir -p /opt/modsecurity && \
+    cd /opt && \
+    git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity && \
+    cd ModSecurity && \
+    git submodule init && \
+    git submodule update && \
+    ./build.sh && \
+    ./configure && \
+    make && \
+    make install
+
+# Copy nginx configuration for production with security enhancements
+COPY nginx.prod.conf /etc/nginx/nginx.conf
+COPY conf.d /etc/nginx/conf.d
+
+# Create directories for ModSecurity
+RUN mkdir -p /etc/nginx/modsecurity
+
+# Copy ModSecurity configuration
+COPY modsecurity/main.conf /etc/nginx/modsecurity/
+COPY modsecurity/crs-setup.conf /etc/nginx/modsecurity/
+COPY modsecurity/rules /etc/nginx/modsecurity/rules
+
+# Create ssl directory
+RUN mkdir -p /etc/nginx/ssl
+
+# Expose ports
+EXPOSE 80
+EXPOSE 443
+
+# Start Nginx server
+CMD ["nginx", "-g", "daemon off;"]
