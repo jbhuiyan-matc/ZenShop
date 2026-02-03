@@ -14,6 +14,12 @@ ZenShop is a full-stack e-commerce application with focus on security best pract
 - **Auth**: Keycloak (OIDC)
 - **Infrastructure**: Docker containers, Nginx, ModSecurity WAF
 
+### Network Architecture
+
+![ZenShop Network Architecture Diagram](./V3drawio.png)
+
+The diagram above illustrates the network zones and security boundaries of the ZenShop deployment.
+
 ## Features
 
 - Public product catalog
