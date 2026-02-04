@@ -16,6 +16,7 @@ RUN npm run build -- --mode production
 
 # Production stage
 FROM nginx:alpine
+LABEL org.opencontainers.image.source https://github.com/jbhuiyan-matc/ZenShop
 
 # Copy built files from build stage to nginx serve directory
 COPY --from=build /app/dist /usr/share/nginx/html

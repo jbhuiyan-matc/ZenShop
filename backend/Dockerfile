@@ -1,4 +1,5 @@
 FROM node:18-alpine
+LABEL org.opencontainers.image.source https://github.com/jbhuiyan-matc/ZenShop
 
 # Set working directory
 WORKDIR /app
