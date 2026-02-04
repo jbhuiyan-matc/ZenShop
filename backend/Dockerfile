@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 5000
 
 # Regenerate Prisma client at runtime to ensure correct binary target
-CMD npx prisma generate && npm run dev
+CMD npx prisma generate && npm start
