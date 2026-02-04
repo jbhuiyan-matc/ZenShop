@@ -40,9 +40,10 @@ export default function Cart() {
       setCart((prevCart) => prevCart.map((item: CartItem) => 
         item.id === itemId ? { ...item, quantity: newQuantity } : item
       ));
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating quantity:', error);
-      alert(error.response?.data?.error || 'Failed to update quantity');
+      const err = error as { response?: { data?: { error?: string } } };
+      alert(err.response?.data?.error || 'Failed to update quantity');
     } finally {
       setUpdating(null);
     }
