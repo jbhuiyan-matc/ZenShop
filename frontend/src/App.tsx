@@ -1,5 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
+import { useAtom } from 'jotai';
+import { userAtom, cartAtom, isAuthRestoringAtom } from './store/atoms';
+import { authAPI, cartAPI } from './services/api';
 import Layout from './components/Layout';
 
 // =========================================
@@ -9,12 +12,23 @@ import Layout from './components/Layout';
 // improving initial load time for the application.
 
 const Home = lazy(() => import('./pages/Home'))
-const ProductListing = lazy(() => import('./pages/ProductListing'))
+const Products = lazy(() => import('./pages/Products'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const About = lazy(() => import('./pages/About'))
+const Contact = lazy(() => import('./pages/Contact'))
+const Privacy = lazy(() => import('./pages/Privacy'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Security = lazy(() => import('./pages/Security'))
+const FAQ = lazy(() => import('./pages/FAQ'))
+const Shipping = lazy(() => import('./pages/Shipping'))
+const Returns = lazy(() => import('./pages/Returns'))
+const Compliance = lazy(() => import('./pages/Compliance'))
+const Orders = lazy(() => import('./pages/Orders'))
+const Admin = lazy(() => import('./pages/Admin'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 // =========================================
@@ -22,6 +36,42 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 // =========================================
 
 function App() {
+  const [, setUser] = useAtom(userAtom);
+  const [, setCart] = useAtom(cartAtom);
+  const [, setIsAuthRestoring] = useAtom(isAuthRestoringAtom);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      // Check both storage mechanisms
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
+      if (token) {
+        try {
+          // Fetch user profile
+          const userRes = await authAPI.getProfile();
+          setUser(userRes.data);
+          
+          // Fetch cart
+          try {
+            const cartRes = await cartAPI.getCart();
+            setCart(cartRes.data);
+          } catch (cartError) {
+            console.error('Failed to fetch cart', cartError);
+          }
+        } catch (error) {
+          console.error('Session restoration failed:', error);
+          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
+          setUser(null);
+          setCart([]);
+        }
+      }
+      setIsAuthRestoring(false);
+    };
+
+    initAuth();
+  }, [setUser, setCart, setIsAuthRestoring]);
+
   return (
     // Suspense handles the loading state while lazy components are being fetched
     <Suspense fallback={
@@ -38,16 +88,33 @@ function App() {
           
           {/* Public Routes */}
           <Route index element={<Home />} />
-          <Route path="products" element={<ProductListing />} />
+          <Route path="products" element={<Products />} />
           <Route path="products/:id" element={<ProductDetail />} />
           <Route path="cart" element={<Cart />} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
+          
+          {/* Support Routes */}
+          <Route path="faq" element={<FAQ />} />
+          <Route path="shipping" element={<Shipping />} />
+          <Route path="returns" element={<Returns />} />
           
           {/* Auth Routes */}
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           
+          {/* Protected Routes (TODO: Add AuthGuard) */}
+          <Route path="orders" element={<Orders />} />
+          <Route path="admin" element={<Admin />} />
+          
           {/* Checkout Flow */}
           <Route path="checkout" element={<Checkout />} />
+          
+          {/* Legal & Security */}
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="terms" element={<Terms />} />
+          <Route path="security" element={<Security />} />
+          <Route path="compliance" element={<Compliance />} />
           
           {/* 404 Fallback */}
           <Route path="*" element={<NotFound />} />

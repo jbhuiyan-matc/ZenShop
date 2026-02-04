@@ -32,7 +32,22 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
    ========================================= */
 
 // Set security HTTP headers
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some dev tools/react
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:", "https://images.unsplash.com", "https://placehold.co", "https://images.pexels.com"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:5001"],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // Enable Cross-Origin Resource Sharing (CORS)
 app.use(cors({
@@ -60,7 +75,7 @@ app.use(morgan('combined', {
 // Protects the API from brute-force attacks and abuse
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minute window
-  max: 100, // Limit each IP to 100 requests per window
+  max: 1000, // Limit each IP to 1000 requests per window
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: {

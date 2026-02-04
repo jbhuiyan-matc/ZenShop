@@ -9,9 +9,12 @@ declare global {
   }
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 
-  (typeof window !== 'undefined' && window.ENV?.VITE_API_URL) || 
-  'http://localhost:5001/api';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.ENV?.VITE_API_URL) ||
+  (typeof window !== 'undefined' && window.location.origin.startsWith('http://localhost')
+    ? 'http://localhost:5001/api'
+    : `${window.location.origin}/api`);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -22,7 +25,7 @@ const api = axios.create({
 
 // Add auth token to requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -36,6 +39,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token is invalid or expired
       localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       // Only redirect if we're not already on the login page
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login?expired=true';

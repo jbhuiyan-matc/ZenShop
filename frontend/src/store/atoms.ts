@@ -3,6 +3,7 @@ import type { CartItem, User } from '../types';
 
 // Auth state
 export const userAtom = atom<User | null>(null);
+export const isAuthRestoringAtom = atom<boolean>(true);
 export const isAuthenticatedAtom = atom((get) => get(userAtom) !== null);
 export const isAdminAtom = atom((get) => get(userAtom)?.role === 'ADMIN');
 

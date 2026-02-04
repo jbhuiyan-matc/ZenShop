@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { productsAPI, categoriesAPI, cartAPI } from '../services/api';
-import { cartAtom, userAtom } from '../store/atoms';
+import { cartAtom, userAtom, toastAtom } from '../store/atoms';
 import type { Product, Category } from '../types';
 
 export default function Products() {
@@ -14,6 +14,7 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('');
   const [, setCart] = useAtom(cartAtom);
   const [user] = useAtom(userAtom);
+  const [, setToast] = useAtom(toastAtom);
 
   const selectedCategory = searchParams.get('category');
 
@@ -41,15 +42,27 @@ export default function Products() {
 
   const addToCart = async (productId: string) => {
     if (!user) {
-      alert('Please login to add items to cart');
+      setToast({ message: 'Please login to add items to cart', type: 'info' });
       return;
     }
     try {
       const response = await cartAPI.addToCart(productId, 1);
-      setCart((prevCart) => [...prevCart, response.data]);
-      // Alert removed as requested
+      const updatedItem = response.data;
+
+      setCart((prevCart) => {
+        const itemExists = prevCart.find(item => item.id === updatedItem.id);
+        if (itemExists) {
+          return prevCart.map(item => 
+            item.id === updatedItem.id ? updatedItem : item
+          );
+        }
+        return [...prevCart, updatedItem];
+      });
+
+      setToast({ message: 'Added to cart!', type: 'success' });
     } catch (error) {
       console.error('Error adding to cart:', error);
+      setToast({ message: 'Failed to add item', type: 'error' });
     }
   };
 
@@ -127,6 +140,11 @@ export default function Products() {
                   src={product.imageUrl} 
                   alt={product.name}
                   className="h-full w-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://placehold.co/600x400?text=No+Image';
+                    target.onerror = null;
+                  }}
                 />
               ) : (
                 <span className="text-gray-400">No Image</span>

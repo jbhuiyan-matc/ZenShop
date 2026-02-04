@@ -71,9 +71,6 @@ export interface RegisterCredentials {
 }
 
 export interface AuthResponse {
-  id: string;
-  email: string;
-  name: string | null;
-  role: 'USER' | 'ADMIN';
   token: string;
+  user: User;
 }

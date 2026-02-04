@@ -37,7 +37,46 @@ const productSchema = z.object({
  */
 router.get('/', async (req, res, next) => {
   try {
+    const { categoryId, search } = req.query;
+    const where = {};
+
+    // Filter by Category (supports ID or Name)
+    if (categoryId) {
+      // Check if input is a valid UUID
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
+
+      if (isUUID) {
+        where.categoryId = categoryId;
+      } else {
+        // If not UUID, try to find category by name (case-insensitive)
+        const category = await prisma.category.findFirst({
+          where: {
+            name: {
+              equals: categoryId,
+              mode: 'insensitive'
+            }
+          }
+        });
+
+        if (category) {
+          where.categoryId = category.id;
+        } else {
+          // If category name doesn't match, ensure no products are returned
+          where.categoryId = '00000000-0000-0000-0000-000000000000';
+        }
+      }
+    }
+
+    // Filter by Search Query
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
     const products = await prisma.product.findMany({
+      where,
       orderBy: { createdAt: 'desc' } // Return newest products first
     });
     

@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
-import { ShoppingCart, User, Menu } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ShoppingCart, User, Menu, LogOut, Package } from 'lucide-react'
 import { useState, ReactNode } from 'react'
+import { useAtom } from 'jotai'
+import { cartAtom, userAtom, toastAtom } from '../store/atoms'
 
 /**
  * Navbar Component
@@ -12,9 +14,29 @@ import { useState, ReactNode } from 'react'
 const Navbar = () => {
   // State to manage mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [cart, setCart] = useAtom(cartAtom)
+  const [user, setUser] = useAtom(userAtom)
+  const [, setToast] = useAtom(toastAtom)
+  const navigate = useNavigate()
+  
+  // Calculate total items in cart
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0)
   
   // Toggle mobile menu
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+
+  const handleLogout = () => {
+    // Clear all storage
+    localStorage.removeItem('token')
+    sessionStorage.removeItem('token')
+    
+    // Clear state
+    setUser(null)
+    setCart([])
+    
+    setToast({ message: 'Logged out successfully', type: 'success' })
+    navigate('/login')
+  }
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -42,15 +64,32 @@ const Navbar = () => {
             <Link to="/cart" className="text-neutral-900 hover:text-brand transition-colors relative aria-label='Shopping Cart'">
               <ShoppingCart size={20} />
               {/* Cart Item Count Badge */}
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-                3
-              </span>
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                  {cartItemCount > 99 ? '99+' : cartItemCount}
+                </span>
+              )}
             </Link>
             
-            {/* User Profile Icon */}
-            <Link to="/login" className="text-neutral-900 hover:text-brand transition-colors aria-label='User Profile'">
-              <User size={20} />
-            </Link>
+            {/* User Actions */}
+            {user ? (
+              <div className="flex items-center space-x-3">
+                <Link to="/orders" className="text-neutral-900 hover:text-brand transition-colors" title="Orders">
+                  <Package size={20} />
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="text-neutral-900 hover:text-red-600 transition-colors"
+                  title="Logout"
+                >
+                  <LogOut size={20} />
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" className="text-neutral-900 hover:text-brand transition-colors" aria-label='Login'>
+                <User size={20} />
+              </Link>
+            )}
             
             {/* Mobile Menu Toggle Button */}
             <button 
@@ -70,6 +109,23 @@ const Navbar = () => {
               <MobileNavLink to="/products" onClick={() => setIsMenuOpen(false)}>Products</MobileNavLink>
               <MobileNavLink to="/about" onClick={() => setIsMenuOpen(false)}>About</MobileNavLink>
               <MobileNavLink to="/contact" onClick={() => setIsMenuOpen(false)}>Contact</MobileNavLink>
+              {user && (
+                <>
+                  <MobileNavLink to="/orders" onClick={() => setIsMenuOpen(false)}>My Orders</MobileNavLink>
+                  <button 
+                    onClick={() => {
+                      handleLogout()
+                      setIsMenuOpen(false)
+                    }}
+                    className="text-left text-neutral-900 hover:text-red-600 font-medium transition-colors px-2 py-1 hover:bg-gray-50 rounded"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+              {!user && (
+                <MobileNavLink to="/login" onClick={() => setIsMenuOpen(false)}>Login</MobileNavLink>
+              )}
             </div>
           </div>
         )}

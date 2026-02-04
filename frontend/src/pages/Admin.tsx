@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Package, ShoppingCart, DollarSign, AlertTriangle } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { adminAPI } from '../services/api';
-import { userAtom } from '../store/atoms';
+import { userAtom, isAuthRestoringAtom } from '../store/atoms';
 import type { Order } from '../types';
 
 interface AdminStats {
@@ -17,11 +17,15 @@ interface AdminStats {
 export default function Admin() {
   const navigate = useNavigate();
   const [user] = useAtom(userAtom);
+  const [isAuthRestoring] = useAtom(isAuthRestoringAtom);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for auth to be restored before checking role
+    if (isAuthRestoring) return;
+
     if (!user || user.role !== 'ADMIN') {
       navigate('/');
       return;
@@ -39,7 +43,17 @@ export default function Admin() {
     };
 
     fetchStats();
-  }, [user, navigate]);
+  }, [user, isAuthRestoring, navigate]);
+
+  if (isAuthRestoring || loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     if (!stats) return;

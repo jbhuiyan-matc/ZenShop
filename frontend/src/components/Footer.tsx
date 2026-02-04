@@ -31,9 +31,10 @@ const Footer = () => {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Shop</h3>
             <ul className="space-y-2 text-sm text-neutral-400">
               <li><FooterLink to="/products">All Products</FooterLink></li>
-              <li><FooterLink to="/products?category=electronics">Electronics</FooterLink></li>
-              <li><FooterLink to="/products?category=clothing">Clothing</FooterLink></li>
-              <li><FooterLink to="/products?category=accessories">Accessories</FooterLink></li>
+              <li><FooterLink to="/products?category=Electronics">Electronics</FooterLink></li>
+              <li><FooterLink to="/products?category=Clothing">Clothing</FooterLink></li>
+              <li><FooterLink to="/products?category=Home%20%26%20Garden">Home & Garden</FooterLink></li>
+              <li><FooterLink to="/products?category=Sports%20%26%20Outdoors">Sports & Outdoors</FooterLink></li>
             </ul>
           </div>
           

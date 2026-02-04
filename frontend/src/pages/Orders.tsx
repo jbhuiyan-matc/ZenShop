@@ -133,6 +133,11 @@ export default function Orders() {
                           src={item.product.imageUrl}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://placehold.co/100x100?text=No+Image';
+                            target.onerror = null;
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">

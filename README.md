@@ -16,6 +16,12 @@ The platform features:
 - Secure authentication and authorization
 - Admin portal for inventory management
 
+## Recent Updates
+
+- **Streamlined UX**: Home page now features direct product browsing with category filters and search, replacing the traditional hero section.
+- **Stability Improvements**: Fixed authentication state restoration to prevent unnecessary re-logins.
+- **Bug Fixes**: Resolved cart count discrepancies and button routing issues.
+
 ## Architecture
 
 ZenShop utilizes a modern microservices-inspired architecture, ensuring separation of concerns and scalability.
@@ -51,12 +57,11 @@ The diagram below illustrates our network segmentation, showing the DMZ, interna
     - Secure Headers (Helmet)
 - **Audit Logging**: Comprehensive tracking of sensitive actions.
 
-## Development Setup
+## Quick Start (Recommended)
 
-Follow these steps to get ZenShop running on your local machine.
+The easiest way to run ZenShop is using Docker. This will set up the frontend, backend, database, and security services automatically.
 
 ### Prerequisites
-- Node.js (v18 or higher)
 - Docker & Docker Compose
 - Git
 
@@ -68,40 +73,46 @@ Follow these steps to get ZenShop running on your local machine.
     cd ZenShop
     ```
 
-2.  **Install Dependencies**
+2.  **Run the Start Script**
+    ```bash
+    chmod +x start-local.sh
+    ./start-local.sh
+    ```
     
-    *Frontend:*
+    *Or manually:*
     ```bash
-    cd frontend
-    npm install
+    docker-compose up -d --build
     ```
 
-    *Backend:*
+3.  **Access the Application**
+    - Frontend: [http://localhost:3000](http://localhost:3000)
+    - Backend API: [http://localhost:5001](http://localhost:5001)
+
+## Manual Development Setup
+
+If you prefer to run services individually without Docker (except the database), follow these steps:
+
+1.  **Start the Database**
     ```bash
-    cd ../backend
-    npm install
+    docker-compose up -d db
     ```
 
-3.  **Start the Infrastructure**
-    Launch the database and other services using Docker.
-    ```bash
-    # From the root directory
-    docker-compose up -d
-    ```
-
-4.  **Run the Application**
-    
-    *Open two terminal tabs:*
-
-    *Tab 1 (Backend):*
+2.  **Install & Run Backend**
     ```bash
     cd backend
+    npm install
+    # Run migrations and seed data
+    npx prisma generate
+    npx prisma migrate dev
+    npm run seed
+    # Start server
     npm run dev
     ```
 
-    *Tab 2 (Frontend):*
+3.  **Install & Run Frontend**
     ```bash
     cd frontend
+    npm install
     npm run dev
     ```
 

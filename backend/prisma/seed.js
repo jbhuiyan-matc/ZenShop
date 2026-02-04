@@ -75,7 +75,7 @@ async function main() {
         price: 79.99,
         stock: 50,
         categoryId: electronics.id,
-        imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.product.create({
@@ -85,7 +85,7 @@ async function main() {
         price: 199.99,
         stock: 30,
         categoryId: electronics.id,
-        imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.product.create({
@@ -95,7 +95,17 @@ async function main() {
         price: 49.99,
         stock: 75,
         categoryId: electronics.id,
-        imageUrl: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?q=80&w=1000&auto=format&fit=crop'
+      }
+    }),
+    prisma.product.create({
+      data: {
+        name: '4K Action Camera',
+        description: 'Capture your adventures in stunning 4K resolution. Waterproof up to 10m without a case and features hyper-smooth stabilization.',
+        price: 299.99,
+        stock: 20,
+        categoryId: electronics.id,
+        imageUrl: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     // Clothing
@@ -106,7 +116,7 @@ async function main() {
         price: 24.99,
         stock: 100,
         categoryId: clothing.id,
-        imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.product.create({
@@ -116,7 +126,7 @@ async function main() {
         price: 89.99,
         stock: 40,
         categoryId: clothing.id,
-        imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.product.create({
@@ -126,7 +136,17 @@ async function main() {
         price: 69.99,
         stock: 25,
         categoryId: clothing.id,
-        imageUrl: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?q=80&w=1000&auto=format&fit=crop'
+      }
+    }),
+    prisma.product.create({
+      data: {
+        name: 'Classic Hoodie',
+        description: 'Premium heavyweight fleece hoodie. Features a double-lined hood and durable stitching for long-lasting comfort.',
+        price: 54.99,
+        stock: 60,
+        categoryId: clothing.id,
+        imageUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     // Home & Garden
@@ -137,7 +157,7 @@ async function main() {
         price: 29.99,
         stock: 60,
         categoryId: home.id,
-        imageUrl: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?q=80&w=1000&auto=format&fit=crop'
       }
     }),
     prisma.product.create({
@@ -147,7 +167,27 @@ async function main() {
         price: 39.99,
         stock: 45,
         categoryId: home.id,
-        imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=1000&auto=format&fit=crop'
+      }
+    }),
+    prisma.product.create({
+      data: {
+        name: 'Essential Oil Diffuser',
+        description: 'Ultrasonic aromatherapy diffuser with color-changing LED lights. Quiet operation and auto shut-off for safe use.',
+        price: 34.99,
+        stock: 40,
+        categoryId: home.id,
+        imageUrl: 'https://images.pexels.com/photos/10036639/pexels-photo-10036639.jpeg?auto=compress&cs=tinysrgb&w=800'
+      }
+    }),
+    prisma.product.create({
+      data: {
+        name: 'Geometric Throw Pillow',
+        description: 'Modern geometric print throw pillow cover with insert. Soft velvet fabric adds texture and style to any sofa or bed.',
+        price: 24.99,
+        stock: 55,
+        categoryId: home.id,
+        imageUrl: 'https://images.pexels.com/photos/4989084/pexels-photo-4989084.jpeg?auto=compress&cs=tinysrgb&w=800'
       }
     }),
     // Sports
@@ -158,7 +198,7 @@ async function main() {
         price: 34.99,
         stock: 80,
         categoryId: sports.id,
-        imageUrl: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.pexels.com/photos/13347104/pexels-photo-13347104.jpeg?auto=compress&cs=tinysrgb&w=800'
       }
     }),
     prisma.product.create({
@@ -168,7 +208,27 @@ async function main() {
         price: 19.99,
         stock: 120,
         categoryId: sports.id,
-        imageUrl: 'https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=400&h=400&fit=crop'
+        imageUrl: 'https://images.pexels.com/photos/6815684/pexels-photo-6815684.jpeg?auto=compress&cs=tinysrgb&w=800'
+      }
+    }),
+    prisma.product.create({
+      data: {
+        name: 'Insulated Water Bottle',
+        description: 'Double-wall vacuum insulated stainless steel water bottle. Keeps drinks cold for 24 hours or hot for 12 hours.',
+        price: 27.99,
+        stock: 90,
+        categoryId: sports.id,
+        imageUrl: 'https://images.pexels.com/photos/3737800/pexels-photo-3737800.jpeg?auto=compress&cs=tinysrgb&w=800'
+      }
+    }),
+    prisma.product.create({
+      data: {
+        name: 'Hiking Backpack',
+        description: 'Lightweight and durable daypack for hiking and travel. Features multiple compartments and breathable mesh back panel.',
+        price: 59.99,
+        stock: 35,
+        categoryId: sports.id,
+        imageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=1000&auto=format&fit=crop'
       }
     })
   ]);
