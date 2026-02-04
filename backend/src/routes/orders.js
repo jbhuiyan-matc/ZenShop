@@ -8,7 +8,9 @@ import { logger } from '../utils/logger.js';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Schema for order creation
+/**
+ * Validation Schemas
+ */
 const createOrderSchema = z.object({
   items: z.array(z.object({
     productId: z.string().uuid('Invalid product ID'),
@@ -16,14 +18,17 @@ const createOrderSchema = z.object({
   })).nonempty('Order must contain at least one item')
 });
 
-// Schema for order status update
 const updateOrderStatusSchema = z.object({
   status: z.enum(['PENDING_PAYMENT', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'], {
     errorMap: () => ({ message: 'Status must be one of: PENDING_PAYMENT, PAID, SHIPPED, DELIVERED, CANCELLED' })
   })
 });
 
-// Get orders for current user
+/**
+ * @route   GET /api/orders
+ * @desc    Get order history for the current user
+ * @access  Private
+ */
 router.get('/', isAuthenticated, async (req, res, next) => {
   try {
     const orders = await prisma.order.findMany({
@@ -38,12 +43,16 @@ router.get('/', isAuthenticated, async (req, res, next) => {
 
     res.json(orders);
   } catch (error) {
-    logger.error('Error fetching orders:', error);
+    logger.error('Failed to fetch orders:', error);
     next(error);
   }
 });
 
-// Get all orders (admin only)
+/**
+ * @route   GET /api/orders/admin
+ * @desc    Get all orders (Admin only)
+ * @access  Private (Admin)
+ */
 router.get('/admin', isAuthenticated, isAdmin, async (req, res, next) => {
   try {
     const orders = await prisma.order.findMany({
@@ -64,12 +73,16 @@ router.get('/admin', isAuthenticated, isAdmin, async (req, res, next) => {
 
     res.json(orders);
   } catch (error) {
-    logger.error('Error fetching all orders:', error);
+    logger.error('Failed to fetch all orders:', error);
     next(error);
   }
 });
 
-// Get single order by ID
+/**
+ * @route   GET /api/orders/:id
+ * @desc    Get a single order by ID
+ * @access  Private (Owner or Admin)
+ */
 router.get('/:id', isAuthenticated, async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -87,27 +100,33 @@ router.get('/:id', isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check if the order belongs to the user or user is admin
+    // Authorization Check: Owner or Admin
     if (order.userId !== req.user.id && req.user.role !== 'ADMIN') {
+      logger.warn(`Access denied: User ${req.user.id} attempted to view order ${id}`);
       return res.status(403).json({ error: 'Access denied' });
     }
 
     res.json(order);
   } catch (error) {
-    logger.error(`Error fetching order ${req.params.id}:`, error);
+    logger.error(`Failed to fetch order ${req.params.id}:`, error);
     next(error);
   }
 });
 
-// Create a new order
+/**
+ * @route   POST /api/orders
+ * @desc    Create a new order from cart items
+ * @access  Private
+ */
 router.post('/', isAuthenticated, validateRequest(createOrderSchema), async (req, res, next) => {
   const { items } = req.body;
 
-  // Start a transaction
   try {
+    // Transaction ensures stock is updated and order is created atomically
     const order = await prisma.$transaction(async (prisma) => {
-      // Verify products and check stock
+      // 1. Validate items and calculate total
       let total = 0;
+      
       for (const item of items) {
         const product = await prisma.product.findUnique({
           where: { id: item.productId }
@@ -118,15 +137,14 @@ router.post('/', isAuthenticated, validateRequest(createOrderSchema), async (req
         }
 
         if (product.stock < item.quantity) {
-          throw new Error(`Not enough stock for product ${product.name}`);
+          throw new Error(`Insufficient stock for product: ${product.name}`);
         }
 
-        // Calculate item total
         total += Number(product.price) * item.quantity;
       }
 
-      // Create order
-      const order = await prisma.order.create({
+      // 2. Create the Order
+      const newOrder = await prisma.order.create({
         data: {
           userId: req.user.id,
           total,
@@ -135,7 +153,7 @@ router.post('/', isAuthenticated, validateRequest(createOrderSchema), async (req
             create: items.map(item => ({
               productId: item.productId,
               quantity: item.quantity,
-              price: 0 // Will be updated below
+              price: 0 // Will be updated below with current product price
             }))
           }
         },
@@ -144,33 +162,33 @@ router.post('/', isAuthenticated, validateRequest(createOrderSchema), async (req
         }
       });
 
-      // Update order items with correct prices and reduce stock
-      for (const item of order.orderItems) {
+      // 3. Update stock and record price snapshot
+      for (const item of newOrder.orderItems) {
         const product = await prisma.product.findUnique({
           where: { id: item.productId }
         });
 
-        // Update order item price
+        // Set the price at time of purchase
         await prisma.orderItem.update({
           where: { id: item.id },
           data: { price: product.price }
         });
 
-        // Update product stock
+        // Decrement stock
         await prisma.product.update({
           where: { id: item.productId },
           data: { stock: product.stock - item.quantity }
         });
       }
 
-      // Clear the user's cart
+      // 4. Clear User's Cart
       await prisma.cartItem.deleteMany({
         where: { userId: req.user.id }
       });
 
-      // Return the updated order with products
+      // Return complete order structure
       return prisma.order.findUnique({
-        where: { id: order.id },
+        where: { id: newOrder.id },
         include: {
           orderItems: {
             include: { product: true }
@@ -179,12 +197,14 @@ router.post('/', isAuthenticated, validateRequest(createOrderSchema), async (req
       });
     });
 
+    logger.info(`Order created: ${order.id} by User ${req.user.id}`);
     res.status(201).json(order);
+
   } catch (error) {
-    logger.error('Error creating order:', error);
+    logger.error('Order creation failed:', error);
     
-    // Provide meaningful error message
-    if (error.message.includes('not found') || error.message.includes('Not enough stock')) {
+    // Handle specific business logic errors from the transaction
+    if (error.message.includes('not found') || error.message.includes('Insufficient stock')) {
       return res.status(400).json({ error: error.message });
     }
     
@@ -192,15 +212,17 @@ router.post('/', isAuthenticated, validateRequest(createOrderSchema), async (req
   }
 });
 
-// Update order status (admin only)
+/**
+ * @route   PATCH /api/orders/:id/status
+ * @desc    Update order status
+ * @access  Private (Admin)
+ */
 router.patch('/:id/status', isAuthenticated, isAdmin, validateRequest(updateOrderStatusSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    const order = await prisma.order.findUnique({
-      where: { id }
-    });
+    const order = await prisma.order.findUnique({ where: { id } });
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
@@ -216,14 +238,19 @@ router.patch('/:id/status', isAuthenticated, isAdmin, validateRequest(updateOrde
       }
     });
 
+    logger.info(`Order status updated: ${id} -> ${status} by Admin ${req.user.id}`);
     res.json(updatedOrder);
   } catch (error) {
-    logger.error(`Error updating order status ${req.params.id}:`, error);
+    logger.error(`Failed to update order status ${req.params.id}:`, error);
     next(error);
   }
 });
 
-// Cancel order (if it's in PENDING_PAYMENT status)
+/**
+ * @route   PATCH /api/orders/:id/cancel
+ * @desc    Cancel an order (only if pending payment)
+ * @access  Private (Owner or Admin)
+ */
 router.patch('/:id/cancel', isAuthenticated, async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -237,25 +264,25 @@ router.patch('/:id/cancel', isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check if the order belongs to the user or user is admin
+    // Authorization Check
     if (order.userId !== req.user.id && req.user.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Can only cancel orders that are pending payment
+    // Business Logic Validation
     if (order.status !== 'PENDING_PAYMENT') {
-      return res.status(400).json({ error: 'Can only cancel orders with PENDING_PAYMENT status' });
+      return res.status(400).json({ error: 'Only pending orders can be cancelled' });
     }
 
-    // Update order status and restore product stock
-    await prisma.$transaction(async (prisma) => {
-      // Update order status
-      const updatedOrder = await prisma.order.update({
+    // Cancel order and restore stock in transaction
+    const updatedOrder = await prisma.$transaction(async (prisma) => {
+      // Update status
+      await prisma.order.update({
         where: { id },
         data: { status: 'CANCELLED' }
       });
 
-      // Restore product stock
+      // Restore stock
       for (const item of order.orderItems) {
         await prisma.product.update({
           where: { id: item.productId },
@@ -267,22 +294,20 @@ router.patch('/:id/cancel', isAuthenticated, async (req, res, next) => {
         });
       }
 
-      return updatedOrder;
-    });
-
-    // Return the updated order with products
-    const orderWithItems = await prisma.order.findUnique({
-      where: { id },
-      include: {
-        orderItems: {
-          include: { product: true }
+      return prisma.order.findUnique({
+        where: { id },
+        include: {
+          orderItems: {
+            include: { product: true }
+          }
         }
-      }
+      });
     });
 
-    res.json(orderWithItems);
+    logger.info(`Order cancelled: ${id} by User ${req.user.id}`);
+    res.json(updatedOrder);
   } catch (error) {
-    logger.error(`Error cancelling order ${req.params.id}:`, error);
+    logger.error(`Failed to cancel order ${req.params.id}:`, error);
     next(error);
   }
 });

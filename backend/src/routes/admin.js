@@ -6,9 +6,14 @@ import { logger } from '../utils/logger.js';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get dashboard stats
+/**
+ * @route   GET /api/admin/stats
+ * @desc    Get dashboard statistics for the admin panel
+ * @access  Private (Admin)
+ */
 router.get('/stats', isAuthenticated, isAdmin, async (req, res, next) => {
   try {
+    // Run all count queries in parallel for performance
     const [totalOrders, totalRevenue, activeProducts, lowStockProducts] = await Promise.all([
       prisma.order.count(),
       prisma.order.aggregate({
@@ -24,7 +29,7 @@ router.get('/stats', isAuthenticated, isAdmin, async (req, res, next) => {
       })
     ]);
 
-    // Get recent orders
+    // Get recent orders for the dashboard widget
     const recentOrders = await prisma.order.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -43,7 +48,7 @@ router.get('/stats', isAuthenticated, isAdmin, async (req, res, next) => {
       recentOrders
     });
   } catch (error) {
-    logger.error('Error fetching admin stats:', error);
+    logger.error('Failed to fetch admin stats:', error);
     next(error);
   }
 });

@@ -10,46 +10,54 @@ import { logger } from '../utils/logger.js';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Validation schemas
+/**
+ * Validation Schemas
+ */
 const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  email: z.string().email('Invalid email address format'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
   name: z.string().optional()
 });
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string()
+  email: z.string().email('Invalid email address format'),
+  password: z.string().min(1, 'Password is required')
 });
 
-// Register a new user
+/**
+ * @route   POST /api/auth/register
+ * @desc    Register a new user account
+ * @access  Public
+ */
 router.post('/register', validateRequest(registerSchema), async (req, res, next) => {
   try {
+    const { email, password, name } = req.body;
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email: req.body.email }
+      where: { email }
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already in use' });
+      return res.status(409).json({ error: 'Email is already registered' });
     }
 
-    // Hash password
+    // Hash password with bcrypt
     const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user in database
     const user = await prisma.user.create({
       data: {
-        email: req.body.email,
+        email,
         passwordHash: hashedPassword,
-        name: req.body.name,
-        role: 'USER'
+        name,
+        role: 'USER' // Default role
       }
     });
 
-    // Log the registration
-    createAuditLog(user.id, 'USER_REGISTERED', 'User registered successfully', req);
+    // Log the registration event
+    createAuditLog(user.id, 'USER_REGISTERED', 'User registration successful', req);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -58,7 +66,9 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
       { expiresIn: '24h' }
     );
 
-    // Return user info (excluding password hash)
+    logger.info(`New user registered: ${user.id} (${user.email})`);
+
+    // Return user info and token
     res.status(201).json({
       id: user.id,
       email: user.email,
@@ -68,21 +78,31 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
     });
 
   } catch (error) {
-    logger.error('Registration error:', error);
+    logger.error('Registration failed:', error);
     next(error);
   }
 });
 
-// Login user
+/**
+ * @route   POST /api/auth/login
+ * @desc    Authenticate user and get token
+ * @access  Public
+ */
 router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
   try {
-    // Find user
+    const { email, password } = req.body;
+
+    // Find user by email
     const user = await prisma.user.findUnique({
-      where: { email: req.body.email }
+      where: { email }
     });
 
     // Check if user exists and password is correct
-    if (!user || !(await bcrypt.compare(req.body.password, user.passwordHash))) {
+    const isValidPassword = user && await bcrypt.compare(password, user.passwordHash);
+
+    if (!isValidPassword) {
+      // Use generic error message to prevent enumeration attacks
+      logger.warn(`Failed login attempt for email: ${email}`);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -93,10 +113,11 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
       { expiresIn: '24h' }
     );
 
-    // Log the login
+    // Log successful login
     createAuditLog(user.id, 'USER_LOGGED_IN', 'User logged in successfully', req);
+    logger.info(`User logged in: ${user.id}`);
 
-    // Return user info (excluding password hash)
+    // Return user info and token
     res.json({
       id: user.id,
       email: user.email,
@@ -106,18 +127,22 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
     });
 
   } catch (error) {
-    logger.error('Login error:', error);
+    logger.error('Login failed:', error);
     next(error);
   }
 });
 
-// Get current user profile
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current user profile
+ * @access  Private (Bearer Token)
+ */
 router.get('/me', async (req, res, next) => {
   try {
     // Check for authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: 'Authentication required' });
     }
 
     const token = authHeader.split(' ')[1];
@@ -126,27 +151,28 @@ router.get('/me', async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Get user from database
+      // Get user from database (exclude password)
       const user = await prisma.user.findUnique({
-        where: { id: decoded.id }
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true
+        }
       });
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'User account not found' });
       }
 
-      // Return user info
-      res.json({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role
-      });
+      res.json(user);
     } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
+      logger.warn('Profile fetch failed: Invalid token');
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
   } catch (error) {
-    logger.error('Get profile error:', error);
+    logger.error('Get profile failed:', error);
     next(error);
   }
 });

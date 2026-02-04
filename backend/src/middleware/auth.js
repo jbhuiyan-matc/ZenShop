@@ -5,65 +5,98 @@ import { logger } from '../utils/logger.js';
 const prisma = new PrismaClient();
 
 /**
- * Middleware to verify user is authenticated via JWT
+ * Middleware: isAuthenticated
+ * 
+ * Verifies that the incoming request has a valid JWT token in the Authorization header.
+ * If valid, it attaches the user object to `req.user`.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
  */
 export const isAuthenticated = async (req, res, next) => {
   try {
-    // Get token from Authorization header
+    // 1. Check for Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+      logger.warn('Authentication failed: Missing or invalid Authorization header');
+      return res.status(401).json({ error: 'Authentication required. Please provide a valid token.' });
     }
 
+    // 2. Extract token
     const token = authHeader.split(' ')[1];
     
-    // Verify token
+    // 3. Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Check if user exists
+    // 4. Check if user still exists in the database
+    // This prevents access if a user is deleted but their token is still valid
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+      where: { id: decoded.id },
+      select: { id: true, email: true, role: true } // Only select necessary fields
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      logger.warn(`Authentication failed: User ID ${decoded.id} not found in database`);
+      return res.status(401).json({ error: 'User no longer exists.' });
     }
 
-    // Set user info on request object
-    req.user = {
-      id: user.id,
-      email: user.email,
-      role: user.role
-    };
+    // 5. Attach user to request object
+    req.user = user;
 
-    // Log authentication success (don't include sensitive data)
-    logger.info(`User ${user.id} authenticated`);
+    // Log success (debug level to reduce noise in production)
+    logger.debug(`User authenticated: ${user.id} (${user.email})`);
     
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ error: 'Invalid token' });
+      logger.warn(`Authentication failed: Invalid token - ${error.message}`);
+      return res.status(401).json({ error: 'Invalid or expired token.' });
     }
     
-    logger.error('Authentication error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    if (error instanceof jwt.TokenExpiredError) {
+      logger.warn('Authentication failed: Token expired');
+      return res.status(401).json({ error: 'Token has expired. Please login again.' });
+    }
+
+    logger.error('Unexpected authentication error:', error);
+    return res.status(500).json({ error: 'Internal authentication error.' });
   }
 };
 
 /**
- * Middleware to verify user is an admin
- * Must be used after isAuthenticated middleware
+ * Middleware: isAdmin
+ * 
+ * Checks if the authenticated user has the 'ADMIN' role.
+ * MUST be placed after `isAuthenticated` middleware.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
  */
 export const isAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== 'ADMIN') {
-    return res.status(403).json({ error: 'Access denied. Admin role required.' });
+  if (!req.user) {
+    logger.error('Authorization error: isAdmin middleware called without authentication');
+    return res.status(500).json({ error: 'Server configuration error.' });
+  }
+
+  if (req.user.role !== 'ADMIN') {
+    logger.warn(`Access denied: User ${req.user.id} attempted to access admin resource`);
+    return res.status(403).json({ error: 'Access denied. Administrator privileges required.' });
   }
   
   next();
 };
 
 /**
- * Create an audit log entry
+ * Helper: createAuditLog
+ * 
+ * Records sensitive actions for security auditing.
+ * 
+ * @param {string} userId - ID of the user performing the action
+ * @param {string} action - Description of the action (e.g., 'DELETE_PRODUCT')
+ * @param {Object} details - Additional metadata about the action
+ * @param {Object} req - Express request object (to extract IP and User-Agent)
  */
 export const createAuditLog = async (userId, action, details, req) => {
   try {
@@ -71,12 +104,14 @@ export const createAuditLog = async (userId, action, details, req) => {
       data: {
         userId,
         action,
-        details,
-        ip: req.ip,
-        userAgent: req.headers['user-agent']
+        details: typeof details === 'string' ? details : JSON.stringify(details),
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'] || 'Unknown'
       }
     });
+    logger.info(`Audit Log: ${action} by User ${userId}`);
   } catch (error) {
+    // We don't want to fail the request if audit logging fails, but we should log the error
     logger.error('Failed to create audit log:', error);
   }
 };

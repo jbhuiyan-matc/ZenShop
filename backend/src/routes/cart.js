@@ -8,38 +8,58 @@ import { logger } from '../utils/logger.js';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Schema for cart item validation
+/**
+ * Validation Schemas
+ */
 const cartItemSchema = z.object({
-  productId: z.string().uuid('Invalid product ID'),
+  productId: z.string().uuid('Invalid product ID format'),
   quantity: z.number().int().positive('Quantity must be a positive integer')
 });
 
-// Schema for updating cart item (quantity only)
 const updateCartItemSchema = z.object({
   quantity: z.number().int().positive('Quantity must be a positive integer')
 });
 
-// Get cart for current user
+/**
+ * @route   GET /api/cart
+ * @desc    Get the current user's shopping cart
+ * @access  Private
+ */
 router.get('/', isAuthenticated, async (req, res, next) => {
   try {
     const cartItems = await prisma.cartItem.findMany({
       where: { userId: req.user.id },
-      include: { product: true }
+      include: { 
+        product: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            imageUrl: true,
+            stock: true
+          }
+        } 
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
     res.json(cartItems);
   } catch (error) {
-    logger.error('Error fetching cart:', error);
+    logger.error('Failed to fetch cart:', error);
     next(error);
   }
 });
 
-// Add item to cart
+/**
+ * @route   POST /api/cart
+ * @desc    Add an item to the cart
+ * @access  Private
+ */
 router.post('/', isAuthenticated, validateRequest(cartItemSchema), async (req, res, next) => {
   try {
     const { productId, quantity } = req.body;
 
-    // Check if product exists and has enough stock
+    // 1. Verify product exists and has stock
     const product = await prisma.product.findUnique({
       where: { id: productId }
     });
@@ -49,10 +69,10 @@ router.post('/', isAuthenticated, validateRequest(cartItemSchema), async (req, r
     }
 
     if (product.stock < quantity) {
-      return res.status(400).json({ error: 'Not enough stock available' });
+      return res.status(400).json({ error: `Insufficient stock. Only ${product.stock} items available.` });
     }
 
-    // Check if item already exists in cart
+    // 2. Check if item is already in the cart
     const existingCartItem = await prisma.cartItem.findFirst({
       where: {
         userId: req.user.id,
@@ -63,14 +83,25 @@ router.post('/', isAuthenticated, validateRequest(cartItemSchema), async (req, r
     let cartItem;
 
     if (existingCartItem) {
-      // Update quantity if item already exists
+      // 3a. Update quantity if exists
+      // Check total quantity against stock
+      const newTotalQuantity = existingCartItem.quantity + quantity;
+      
+      if (product.stock < newTotalQuantity) {
+         return res.status(400).json({ 
+           error: `Cannot add ${quantity} more. You already have ${existingCartItem.quantity} in cart and only ${product.stock} are available.` 
+         });
+      }
+
       cartItem = await prisma.cartItem.update({
         where: { id: existingCartItem.id },
-        data: { quantity: existingCartItem.quantity + quantity },
+        data: { quantity: newTotalQuantity },
         include: { product: true }
       });
+      
+      logger.info(`Cart updated: User ${req.user.id} increased quantity of ${productId} to ${newTotalQuantity}`);
     } else {
-      // Create new cart item
+      // 3b. Create new cart item
       cartItem = await prisma.cartItem.create({
         data: {
           userId: req.user.id,
@@ -79,22 +110,28 @@ router.post('/', isAuthenticated, validateRequest(cartItemSchema), async (req, r
         },
         include: { product: true }
       });
+      
+      logger.info(`Cart updated: User ${req.user.id} added ${quantity} of ${productId}`);
     }
 
     res.status(201).json(cartItem);
   } catch (error) {
-    logger.error('Error adding item to cart:', error);
+    logger.error('Failed to add item to cart:', error);
     next(error);
   }
 });
 
-// Update cart item quantity
+/**
+ * @route   PUT /api/cart/:id
+ * @desc    Update quantity of a cart item
+ * @access  Private
+ */
 router.put('/:id', isAuthenticated, validateRequest(updateCartItemSchema), async (req, res, next) => {
   try {
     const { quantity } = req.body;
     const { id } = req.params;
 
-    // Verify the cart item belongs to the user
+    // 1. Verify cart item ownership
     const cartItem = await prisma.cartItem.findFirst({
       where: {
         id,
@@ -106,35 +143,46 @@ router.put('/:id', isAuthenticated, validateRequest(updateCartItemSchema), async
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    // Check product stock
+    // 2. Check stock availability
     const product = await prisma.product.findUnique({
       where: { id: cartItem.productId }
     });
 
-    if (product.stock < quantity) {
-      return res.status(400).json({ error: 'Not enough stock available' });
+    // If product was deleted, remove from cart
+    if (!product) {
+        await prisma.cartItem.delete({ where: { id } });
+        return res.status(404).json({ error: 'Product no longer exists' });
     }
 
-    // Update cart item
+    if (product.stock < quantity) {
+      return res.status(400).json({ error: `Insufficient stock. Only ${product.stock} items available.` });
+    }
+
+    // 3. Update cart item
     const updatedCartItem = await prisma.cartItem.update({
       where: { id },
       data: { quantity },
       include: { product: true }
     });
 
+    logger.info(`Cart updated: User ${req.user.id} set quantity of item ${id} to ${quantity}`);
     res.json(updatedCartItem);
   } catch (error) {
-    logger.error(`Error updating cart item ${req.params.id}:`, error);
+    logger.error(`Failed to update cart item ${req.params.id}:`, error);
     next(error);
   }
 });
 
-// Remove item from cart
+/**
+ * @route   DELETE /api/cart/:id
+ * @desc    Remove an item from the cart
+ * @access  Private
+ */
 router.delete('/:id', isAuthenticated, async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Verify the cart item belongs to the user
+    // 1. Verify cart item ownership
     const cartItem = await prisma.cartItem.findFirst({
       where: {
         id,
@@ -146,28 +194,34 @@ router.delete('/:id', isAuthenticated, async (req, res, next) => {
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    // Delete cart item
+    // 2. Delete item
     await prisma.cartItem.delete({
       where: { id }
     });
 
+    logger.info(`Cart updated: User ${req.user.id} removed item ${id}`);
     res.status(204).end();
   } catch (error) {
-    logger.error(`Error deleting cart item ${req.params.id}:`, error);
+    logger.error(`Failed to delete cart item ${req.params.id}:`, error);
     next(error);
   }
 });
 
-// Clear cart
+/**
+ * @route   DELETE /api/cart
+ * @desc    Clear the entire cart
+ * @access  Private
+ */
 router.delete('/', isAuthenticated, async (req, res, next) => {
   try {
     await prisma.cartItem.deleteMany({
       where: { userId: req.user.id }
     });
 
+    logger.info(`Cart cleared: User ${req.user.id} emptied their cart`);
     res.status(204).end();
   } catch (error) {
-    logger.error('Error clearing cart:', error);
+    logger.error('Failed to clear cart:', error);
     next(error);
   }
 });
