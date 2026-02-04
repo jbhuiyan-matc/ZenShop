@@ -1,54 +1,75 @@
 import { Link } from 'react-router-dom'
 import { ShoppingCart, User, Menu } from 'lucide-react'
-import { useState } from 'react'
+import { useState, ReactNode } from 'react'
 
+/**
+ * Navbar Component
+ * 
+ * The main navigation header for the application.
+ * Includes logo, desktop navigation links, and mobile menu toggle.
+ * Displays user actions like Cart and Login.
+ */
 const Navbar = () => {
+  // State to manage mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   
+  // Toggle mobile menu
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold text-brand">zen<span className="text-neutral-900">SHOP</span></span>
+          
+          {/* Logo Section */}
+          <Link to="/" className="flex items-center group">
+            <span className="text-2xl font-bold text-brand group-hover:text-brand-dark transition-colors">
+              zen<span className="text-neutral-900">SHOP</span>
+            </span>
           </Link>
           
-          {/* Desktop Nav */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex space-x-8">
-            <Link to="/products" className="text-neutral-900 hover:text-brand transition-colors">Products</Link>
-            <Link to="/about" className="text-neutral-900 hover:text-brand transition-colors">About</Link>
-            <Link to="/contact" className="text-neutral-900 hover:text-brand transition-colors">Contact</Link>
+            <NavLink to="/products">Products</NavLink>
+            <NavLink to="/about">About</NavLink>
+            <NavLink to="/contact">Contact</NavLink>
           </div>
           
-          {/* User Icons */}
+          {/* User Actions (Cart, Profile, Mobile Toggle) */}
           <div className="flex items-center space-x-4">
-            <Link to="/cart" className="text-neutral-900 hover:text-brand transition-colors relative">
+            
+            {/* Shopping Cart Icon */}
+            <Link to="/cart" className="text-neutral-900 hover:text-brand transition-colors relative aria-label='Shopping Cart'">
               <ShoppingCart size={20} />
-              <span className="absolute -top-2 -right-2 bg-accent text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">3</span>
+              {/* Cart Item Count Badge */}
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+                3
+              </span>
             </Link>
             
-            <Link to="/login" className="text-neutral-900 hover:text-brand transition-colors">
+            {/* User Profile Icon */}
+            <Link to="/login" className="text-neutral-900 hover:text-brand transition-colors aria-label='User Profile'">
               <User size={20} />
             </Link>
             
-            {/* Mobile menu button */}
+            {/* Mobile Menu Toggle Button */}
             <button 
-              className="md:hidden text-neutral-900 focus:outline-none" 
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden text-neutral-900 focus:outline-none hover:text-brand transition-colors" 
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
             >
               <Menu size={24} />
             </button>
           </div>
         </div>
         
-        {/* Mobile menu */}
+        {/* Mobile Navigation Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2">
             <div className="flex flex-col space-y-3">
-              <Link to="/products" className="text-neutral-900 hover:text-brand transition-colors">Products</Link>
-              <Link to="/about" className="text-neutral-900 hover:text-brand transition-colors">About</Link>
-              <Link to="/contact" className="text-neutral-900 hover:text-brand transition-colors">Contact</Link>
+              <MobileNavLink to="/products" onClick={() => setIsMenuOpen(false)}>Products</MobileNavLink>
+              <MobileNavLink to="/about" onClick={() => setIsMenuOpen(false)}>About</MobileNavLink>
+              <MobileNavLink to="/contact" onClick={() => setIsMenuOpen(false)}>Contact</MobileNavLink>
             </div>
           </div>
         )}
@@ -56,5 +77,26 @@ const Navbar = () => {
     </nav>
   )
 }
+
+// Helper component for consistent Desktop Nav Links
+const NavLink = ({ to, children }: { to: string; children: ReactNode }) => (
+  <Link 
+    to={to} 
+    className="text-neutral-900 hover:text-brand font-medium transition-colors"
+  >
+    {children}
+  </Link>
+)
+
+// Helper component for consistent Mobile Nav Links
+const MobileNavLink = ({ to, onClick, children }: { to: string; onClick: () => void; children: ReactNode }) => (
+  <Link 
+    to={to} 
+    className="text-neutral-900 hover:text-brand font-medium transition-colors px-2 py-1 hover:bg-gray-50 rounded"
+    onClick={onClick}
+  >
+    {children}
+  </Link>
+)
 
 export default Navbar

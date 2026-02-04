@@ -1,74 +1,127 @@
 # ZenShop
 
-A secure e-commerce platform built for Security Design class project.
+**A Secure E-Commerce Platform**
+*Built for the Security Design Class Project*
+
+![Status](https://img.shields.io/badge/Status-Active-success)
+![License](https://img.shields.io/badge/License-MIT-blue)
 
 ## About
 
-ZenShop is a full-stack e-commerce application with focus on security best practices. It features product browsing, cart management, and checkout flow (no real payment processing).
+ZenShop is a full-stack e-commerce application designed with a security-first approach. It demonstrates secure coding practices, network segmentation, and robust infrastructure design.
+
+The platform features:
+- Product browsing and search
+- Shopping cart and checkout simulation
+- Secure authentication and authorization
+- Admin portal for inventory management
 
 ## Architecture
 
-- **Frontend**: React + Vite, TypeScript, TailwindCSS
-- **Backend**: Node.js, Express, Prisma ORM
-- **Database**: PostgreSQL
-- **Auth**: Keycloak (OIDC)
-- **Infrastructure**: Docker containers, Nginx, ModSecurity WAF
+ZenShop utilizes a modern microservices-inspired architecture, ensuring separation of concerns and scalability.
+
+### Tech Stack
+
+| Component | Technology | Description |
+|-----------|------------|-------------|
+| **Frontend** | React, Vite, TypeScript | Fast, type-safe UI with TailwindCSS. |
+| **Backend** | Node.js, Express | RESTful API with robust security middleware. |
+| **Database** | PostgreSQL + Prisma | Relational data storage with type-safe ORM. |
+| **Auth** | Keycloak (OIDC) | Enterprise-grade identity and access management. |
+| **Infra** | Docker, Nginx, ModSecurity | Containerized deployment with WAF protection. |
 
 ### Network Architecture
 
-![ZenShop Network Architecture Diagram](./V3drawio.png)
+The diagram below illustrates our network segmentation, showing the DMZ, internal zones, and security boundaries.
 
-The diagram above illustrates the network zones and security boundaries of the ZenShop deployment.
+![ZenShop Network Diagram](./V3drawio.png)
 
 ## Features
 
-- Public product catalog
-- User authentication & authorization
-- Shopping cart & checkout flow
-- Admin portal for product management
-- Security controls (CSRF, XSS protection, rate limiting, etc.)
-- Activity audit logging
+### User Experience
+- **Intuitive Interface**: Clean and responsive design.
+- **Product Catalog**: View products with detailed descriptions and images.
+- **Shopping Cart**: Real-time cart management.
 
-## Security Considerations
-
-This application implements security controls aligned with:
-- OWASP Top 10 (2021)
-- CIS Benchmarks
-- Basic PCI-DSS requirements (non-payment sections)
+### Security & Administration
+- **Role-Based Access Control (RBAC)**: Distinct permissions for Customers vs. Admins.
+- **Security Controls**:
+    - CSRF & XSS Protection
+    - Rate Limiting to prevent abuse
+    - Secure Headers (Helmet)
+- **Audit Logging**: Comprehensive tracking of sensitive actions.
 
 ## Development Setup
 
+Follow these steps to get ZenShop running on your local machine.
+
 ### Prerequisites
+- Node.js (v18 or higher)
+- Docker & Docker Compose
+- Git
 
-- Node.js 18+
-- Docker and docker-compose
-- PostgreSQL 15 (or use Docker container)
+### Installation
 
-### Running locally
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/jbhuiyan-matc/ZenShop.git
+    cd ZenShop
+    ```
 
-```bash
-# Clone repository
-git clone https://github.com/jbhuiyan-matc/ZenShop.git
-cd ZenShop
+2.  **Install Dependencies**
+    
+    *Frontend:*
+    ```bash
+    cd frontend
+    npm install
+    ```
 
-# Install dependencies for frontend and backend
-cd frontend && npm install
-cd ../backend && npm install
+    *Backend:*
+    ```bash
+    cd ../backend
+    npm install
+    ```
 
-# Set up development environment
-docker-compose up -d
-```
+3.  **Start the Infrastructure**
+    Launch the database and other services using Docker.
+    ```bash
+    # From the root directory
+    docker-compose up -d
+    ```
+
+4.  **Run the Application**
+    
+    *Open two terminal tabs:*
+
+    *Tab 1 (Backend):*
+    ```bash
+    cd backend
+    npm run dev
+    ```
+
+    *Tab 2 (Frontend):*
+    ```bash
+    cd frontend
+    npm run dev
+    ```
 
 ## Project Structure
 
 ```
 /
-├── frontend/           # React + Vite application
-├── backend/            # Node.js Express API
-├── infra/              # Docker, Nginx configs, deployment scripts
-└── docs/               # Documentation, ERD, threat model
+├── frontend/           # React + Vite application (UI)
+├── backend/            # Node.js Express API (Server)
+├── infra/              # Docker, Nginx, WAF configs
+└── docs/               # Documentation, Diagrams, Threat Models
 ```
+
+## Security Considerations
+
+This application adheres to industry standards to ensure data integrity and user safety:
+- **OWASP Top 10 (2021)** compliance.
+- **CIS Benchmarks** for server hardening.
+- **PCI-DSS** best practices for data handling (non-payment scope).
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](LICENSE).
