@@ -23,6 +23,7 @@ export const isAuthenticated = async (req, res, next) => {
       return res.status(401).json({ error: 'Authentication required. Please provide a valid token.' });
     }
 
+    // 2. Extract token
     const token = authHeader.split(' ')[1];
     
     // 2. Verify JWT signature and expiration
@@ -102,6 +103,7 @@ export const createAuditLog = async (userId, action, details, req) => {
         userAgent: req.headers['user-agent'] || 'Unknown'
       }
     });
+    logger.info(`Audit Log: ${action} by User ${userId}`);
   } catch (error) {
     // We log the error but don't crash the request if audit logging fails
     logger.error('Failed to create audit log:', error);

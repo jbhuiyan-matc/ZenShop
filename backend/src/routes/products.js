@@ -19,9 +19,10 @@ const prisma = new PrismaClient();
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(100, 'Name too long'),
   description: z.string().optional(),
-  price: z.number().positive('Price must be positive'),
-  imageUrl: z.string().url('Invalid image URL').optional().nullable(),
-  stock: z.number().int().nonnegative('Stock cannot be negative')
+  price: z.number().positive('Price must be a positive number'),
+  imageUrl: z.string().url('Invalid image URL format').optional().nullable(),
+  stock: z.number().int().nonnegative('Stock cannot be negative'),
+  categoryId: z.string().optional().nullable()
 });
 
 // =========================================
@@ -42,7 +43,7 @@ router.get('/', async (req, res, next) => {
     
     res.status(200).json(products);
   } catch (error) {
-    logger.error('Error fetching products:', error);
+    logger.error('Failed to fetch products:', error);
     next(error);
   }
 });
@@ -68,7 +69,7 @@ router.get('/:id', async (req, res, next) => {
 
     res.status(200).json(product);
   } catch (error) {
-    logger.error(`Error fetching product ${req.params.id}:`, error);
+    logger.error(`Failed to fetch product with ID ${req.params.id}:`, error);
     next(error);
   }
 });

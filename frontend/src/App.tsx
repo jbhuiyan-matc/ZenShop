@@ -1,6 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
-import Layout from './components/Layout'
+import { Routes, Route, Link } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import Layout from './components/Layout';
 
 // =========================================
 // Lazy Loaded Components
@@ -38,7 +38,7 @@ function App() {
           
           {/* Public Routes */}
           <Route index element={<Home />} />
-          <Route path="products" element={<ProductListing />} />
+          <Route path="products" element={<Products />} />
           <Route path="products/:id" element={<ProductDetail />} />
           <Route path="cart" element={<Cart />} />
           
@@ -55,7 +55,7 @@ function App() {
         </Route>
       </Routes>
     </Suspense>
-  )
+  );
 }
 
-export default App
+export default App;

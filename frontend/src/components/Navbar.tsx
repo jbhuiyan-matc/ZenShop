@@ -75,8 +75,8 @@ const Navbar = () => {
         )}
       </div>
     </nav>
-  )
-}
+  );
+};
 
 // Helper component for consistent Desktop Nav Links
 const NavLink = ({ to, children }: { to: string; children: ReactNode }) => (

@@ -74,8 +74,8 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
 // Helper: Footer Link
 const FooterLink = ({ to, children }: { to: string, children: ReactNode }) => (
