@@ -22,6 +22,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy (required for correct IP rate limiting behind Nginx/Docker)
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors({
@@ -33,13 +36,15 @@ app.use(cookieParser());
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
 // Apply rate limiting
+/*
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 1000 requests per windowMs
   standardHeaders: true,
   message: 'Too many requests, please try again later.'
 });
 app.use('/api', apiLimiter);
+*/
 
 // Health check endpoint
 app.get('/health', (req, res) => {

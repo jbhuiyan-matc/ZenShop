@@ -12,7 +12,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useAtom(cartAtom);
+  const [, setCart] = useAtom(cartAtom);
   const [user] = useAtom(userAtom);
 
   const selectedCategory = searchParams.get('category');
@@ -46,8 +46,8 @@ export default function Products() {
     }
     try {
       const response = await cartAPI.addToCart(productId, 1);
-      setCart([...cart, response.data]);
-      alert('Added to cart!');
+      setCart((prevCart) => [...prevCart, response.data]);
+      // Alert removed as requested
     } catch (error) {
       console.error('Error adding to cart:', error);
     }

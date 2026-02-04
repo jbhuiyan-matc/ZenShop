@@ -40,7 +40,7 @@ export default function Home() {
     try {
       const response = await import('../services/api').then(m => m.cartAPI.addToCart(productId, 1));
       setCart([...cart, response.data]);
-      alert('Added to cart!');
+      // Silently succeed or use a toast in future
     } catch (error) {
       console.error('Error adding to cart:', error);
     }

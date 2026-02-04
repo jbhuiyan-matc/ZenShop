@@ -12,7 +12,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-  const [cart, setCart] = useAtom(cartAtom);
+  const [, setCart] = useAtom(cartAtom);
   const [user] = useAtom(userAtom);
 
   useEffect(() => {
@@ -41,11 +41,10 @@ export default function ProductDetail() {
     setAdding(true);
     try {
       const response = await cartAPI.addToCart(product.id, quantity);
-      setCart([...cart, response.data]);
-      alert(`Added ${quantity} ${product.name} to cart!`);
+      setCart((prevCart) => [...prevCart, response.data]);
+      // Alert removed as requested
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Failed to add to cart');
     } finally {
       setAdding(false);
     }

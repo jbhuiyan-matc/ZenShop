@@ -10,7 +10,7 @@ const Layout = () => {
   const [user, setUser] = useAtom(userAtom);
   const [, setCart] = useAtom(cartAtom);
 
-  // Load user and cart on mount
+  // Load user on mount
   useEffect(() => {
     const loadUser = async () => {
       const token = localStorage.getItem('token');
@@ -18,26 +18,32 @@ const Layout = () => {
         try {
           const response = await authAPI.getProfile();
           setUser(response.data);
-        } catch {
-          localStorage.removeItem('token');
+        } catch (error) {
+          console.error('Failed to load user profile:', error);
         }
       }
     };
 
+    loadUser();
+  }, [setUser]);
+
+  // Load cart when user changes
+  useEffect(() => {
     const loadCart = async () => {
       if (user) {
         try {
           const response = await cartAPI.getCart();
           setCart(response.data);
         } catch {
-          // User might not be logged in
+          // User might not be logged in or other error
         }
+      } else {
+        setCart([]);
       }
     };
 
-    loadUser();
     loadCart();
-  }, [setUser, setCart, user]);
+  }, [user, setCart]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">

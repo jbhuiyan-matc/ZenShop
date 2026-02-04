@@ -37,11 +37,12 @@ export default function Cart() {
     setUpdating(itemId);
     try {
       await cartAPI.updateQuantity(itemId, newQuantity);
-      setCart(cart.map((item: CartItem) => 
+      setCart((prevCart) => prevCart.map((item: CartItem) => 
         item.id === itemId ? { ...item, quantity: newQuantity } : item
       ));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating quantity:', error);
+      alert(error.response?.data?.error || 'Failed to update quantity');
     } finally {
       setUpdating(null);
     }
@@ -51,7 +52,7 @@ export default function Cart() {
     setUpdating(itemId);
     try {
       await cartAPI.removeFromCart(itemId);
-      setCart(cart.filter((item: CartItem) => item.id !== itemId));
+      setCart((prevCart) => prevCart.filter((item: CartItem) => item.id !== itemId));
     } catch (error) {
       console.error('Error removing item:', error);
     } finally {
