@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { validateRequest } from '../middleware/validate.js';
 import { logger } from '../utils/logger.js';
@@ -28,10 +29,15 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // In a real app, verify password hash. For now, this is a placeholder.
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || user.password !== password) {
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -62,12 +68,14 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
       return res.status(409).json({ error: 'Email already in use' });
     }
 
+    const passwordHash = await bcrypt.hash(password, 10);
+
     const user = await prisma.user.create({
       data: {
         name,
         email,
-        password, // Note: In production, hash this password!
-        role: 'CUSTOMER'
+        passwordHash,
+        role: 'USER'
       }
     });
 

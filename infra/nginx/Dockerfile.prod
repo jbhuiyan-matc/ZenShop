@@ -1,44 +1,27 @@
-FROM nginx:alpine
+FROM owasp/modsecurity-crs:nginx
 
-# Install ModSecurity dependencies
-RUN apk add --no-cache \
-    gcc \
-    libc-dev \
-    make \
-    openssl-dev \
-    pcre-dev \
-    zlib-dev \
-    linux-headers \
-    libxslt-dev \
-    gd-dev \
-    geoip-dev \
-    perl-dev \
-    libedit-dev \
-    mercurial \
-    alpine-sdk \
-    findutils \
-    curl
+# Switch to root to create directories and copy files
+USER root
 
-# Build and install ModSecurity
-RUN mkdir -p /opt/modsecurity && \
-    cd /opt && \
-    git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity && \
-    cd ModSecurity && \
-    git submodule init && \
-    git submodule update && \
-    ./build.sh && \
-    ./configure && \
-    make && \
-    make install
+# Remove default templates to prevent overwriting our config
+RUN rm -rf /etc/nginx/templates/*
 
-# Copy nginx configuration for production with security enhancements
+# Remove conflicting entrypoint scripts that try to auto-configure ModSecurity
+RUN rm -f /docker-entrypoint.d/90-copy-modsecurity-config.sh
+RUN rm -f /docker-entrypoint.d/91-update-resolver.sh
+RUN rm -f /docker-entrypoint.d/92-update-real_ip.sh
+RUN rm -f /docker-entrypoint.d/93-update-proxy-ssl-config.sh
+RUN rm -f /docker-entrypoint.d/94-activate-plugins.sh
+
+# Copy nginx configuration for production
 COPY nginx.prod.conf /etc/nginx/nginx.conf
 COPY conf.d /etc/nginx/conf.d
 
-# Create directories for ModSecurity
+# Create directories for ModSecurity (if they don't exist or we want to overwrite)
+# The image already has /etc/modsecurity.d, but our config points to /etc/nginx/modsecurity
 RUN mkdir -p /etc/nginx/modsecurity
 
-# Copy ModSecurity configuration
+# Copy our ModSecurity configuration
 COPY modsecurity/main.conf /etc/nginx/modsecurity/
 COPY modsecurity/crs-setup.conf /etc/nginx/modsecurity/
 COPY modsecurity/rules /etc/nginx/modsecurity/rules

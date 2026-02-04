@@ -21,3 +21,6 @@ coverage
 .vscode
 *.swp
 *.swo
+
+# SSL Certificates
+infra/nginx/ssl/
