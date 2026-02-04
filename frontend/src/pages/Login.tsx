@@ -55,8 +55,9 @@ export default function Login() {
       // Redirect to where they came from, or home
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Invalid email or password';
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || 'Invalid email or password';
       setError(msg);
       setToast({ message: msg, type: 'error' });
     } finally {

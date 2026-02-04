@@ -48,8 +48,9 @@ export default function Register() {
       setUser(user);
       setToast({ message: 'Account created successfully!', type: 'success' });
       navigate('/');
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      const msg = error.response?.data?.message || 'Registration failed. Please try again.';
       setError(msg);
       setToast({ message: msg, type: 'error' });
     } finally {

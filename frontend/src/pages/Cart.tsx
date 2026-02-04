@@ -12,6 +12,18 @@ export default function Cart() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        setLoading(true);
+        const response = await cartAPI.getCart();
+        setCart(response.data);
+      } catch (error) {
+        console.error('Error fetching cart:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     // If auth is still restoring, wait
     if (isAuthRestoring) return;
 
@@ -20,19 +32,7 @@ export default function Cart() {
     } else {
       setLoading(false);
     }
-  }, [user, isAuthRestoring]);
-
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      const response = await cartAPI.getCart();
-      setCart(response.data);
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, isAuthRestoring, setCart]);
 
   const updateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -86,7 +86,7 @@ export default function Cart() {
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
         <ShoppingBag className="mx-auto h-16 w-16 text-gray-400 mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h2>
-        <p className="text-gray-600 mb-8">Looks like you haven't added anything to your cart yet.</p>
+        <p className="text-gray-600 mb-8">Looks like you haven&apos;t added anything to your cart yet.</p>
         <Link to="/products" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700">
           Start Shopping
         </Link>
