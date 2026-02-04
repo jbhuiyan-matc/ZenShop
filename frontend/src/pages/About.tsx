@@ -70,7 +70,7 @@ export default function About() {
         <h2 className="text-2xl font-bold text-gray-900 mb-8">Our Mission</h2>
         <div className="bg-blue-600 text-white rounded-2xl p-8 md:p-12">
           <p className="text-lg md:text-xl font-medium italic">
-            "To empower customers with a secure, transparent, and enjoyable online shopping experience where safety is never compromised for convenience."
+            &quot;To empower customers with a secure, transparent, and enjoyable online shopping experience where safety is never compromised for convenience.&quot;
           </p>
         </div>
       </div>

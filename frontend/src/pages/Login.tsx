@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
+import { AxiosError } from 'axios';
 import { authAPI } from '../services/api';
 import { userAtom } from '../store/atoms';
 
@@ -25,8 +26,9 @@ export default function Login() {
       localStorage.setItem('token', token);
       setUser(userData);
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
+    } catch (err) {
+      const error = err as AxiosError<{ error: string }>;
+      setError(error.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -80,7 +82,7 @@ export default function Login() {
         </form>
 
         <p className="mt-4 text-center text-gray-600">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link to="/register" className="text-blue-600 hover:text-blue-800">
             Register
           </Link>

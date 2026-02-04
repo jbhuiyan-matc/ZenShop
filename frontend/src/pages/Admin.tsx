@@ -48,7 +48,7 @@ export default function Admin() {
       await adminAPI.updateOrderStatus(orderId, newStatus);
       // Update local state
       const updatedOrders = stats.recentOrders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus as any } : order
+        order.id === orderId ? { ...order, status: newStatus as Order['status'] } : order
       );
       setStats({ ...stats, recentOrders: updatedOrders });
     } catch (error) {

@@ -248,7 +248,7 @@ router.patch('/:id/cancel', isAuthenticated, async (req, res, next) => {
     }
 
     // Update order status and restore product stock
-    const updatedOrder = await prisma.$transaction(async (prisma) => {
+    await prisma.$transaction(async (prisma) => {
       // Update order status
       const updatedOrder = await prisma.order.update({
         where: { id },

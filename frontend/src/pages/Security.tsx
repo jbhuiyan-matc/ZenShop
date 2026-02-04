@@ -13,7 +13,7 @@ export default function Security() {
           <h2 className="text-2xl font-bold text-gray-900">Our Commitment to Security</h2>
         </div>
         <p className="text-gray-600 leading-relaxed">
-          At ZenShop, security is not just a feature—it's the foundation of our platform. We employ industry-standard security measures to ensure your data, transactions, and privacy are protected at all times.
+          At ZenShop, security is not just a feature—it&apos;s the foundation of our platform. We employ industry-standard security measures to ensure your data, transactions, and privacy are protected at all times.
         </p>
       </div>
 

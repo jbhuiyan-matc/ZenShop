@@ -10,7 +10,7 @@ export default function Contact() {
         <div className="bg-white rounded-lg shadow-md p-8">
           <h2 className="text-2xl font-bold mb-6 text-gray-900">Get in Touch</h2>
           <p className="text-gray-600 mb-8">
-            Have questions about our products or your order? We're here to help!
+            Have questions about our products or your order? We&apos;re here to help!
           </p>
           
           <div className="space-y-6">

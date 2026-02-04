@@ -102,7 +102,7 @@ export default function Cart() {
       <div className="text-center py-12">
         <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 mb-4">Your Cart is Empty</h1>
-        <p className="text-gray-600 mb-6">Looks like you haven't added anything yet</p>
+        <p className="text-gray-600 mb-6">Looks like you haven&apos;t added anything yet</p>
         <Link
           to="/products"
           className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"

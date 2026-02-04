@@ -37,7 +37,7 @@ const Layout = () => {
 
     loadUser();
     loadCart();
-  }, [setUser, setCart, user?.id]);
+  }, [setUser, setCart, user]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">

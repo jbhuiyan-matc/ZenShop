@@ -75,7 +75,7 @@ export default function Orders() {
       <div className="text-center py-12">
         <Package size={64} className="mx-auto text-gray-300 mb-4" />
         <h1 className="text-2xl font-bold text-gray-900 mb-4">No Orders Yet</h1>
-        <p className="text-gray-600 mb-6">You haven't placed any orders yet</p>
+        <p className="text-gray-600 mb-6">You haven&apos;t placed any orders yet</p>
         <Link
           to="/products"
           className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
+import { AxiosError } from 'axios';
 import { authAPI } from '../services/api';
 import { userAtom } from '../store/atoms';
 
@@ -37,8 +38,9 @@ export default function Register() {
       localStorage.setItem('token', token);
       setUser(userData);
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed');
+    } catch (err) {
+      const error = err as AxiosError<{ error: string }>;
+      setError(error.response?.data?.error || 'Registration failed');
     } finally {
       setLoading(false);
     }
