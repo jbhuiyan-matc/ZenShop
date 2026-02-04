@@ -87,4 +87,22 @@ export const ordersAPI = {
     api.patch<Order>(`/orders/${id}/cancel`),
 };
 
+// Admin API
+export const adminAPI = {
+  getAllOrders: () => 
+    api.get<Order[]>('/orders/all'),
+  
+  updateOrderStatus: (id: string, status: string) => 
+    api.patch<Order>(`/orders/${id}/status`, { status }),
+  
+  getStats: () => 
+    api.get<{ 
+      totalOrders: number; 
+      totalRevenue: number; 
+      activeProducts: number;
+      lowStockProducts: number;
+      recentOrders: Order[];
+    }>('/admin/stats'),
+};
+
 export default api;

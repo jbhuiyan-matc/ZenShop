@@ -16,6 +16,7 @@ const About = lazy(() => import('./pages/About'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Security = lazy(() => import('./pages/Security'));
+const Admin = lazy(() => import('./pages/Admin'));
 
 // 404 page
 const NotFound = () => (
@@ -41,6 +42,7 @@ function App() {
           <Route path="orders" element={<Orders />} />
           <Route path="contact" element={<Contact />} />
           <Route path="about" element={<About />} />
+          <Route path="admin" element={<Admin />} />
           <Route path="privacy" element={<Privacy />} />
           <Route path="terms" element={<Terms />} />
           <Route path="security" element={<Security />} />
