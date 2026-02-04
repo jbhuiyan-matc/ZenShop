@@ -29,6 +29,16 @@ enum UserRole {
   ADMIN
 }
 
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  imageUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
 model Product {
   id          String    @id @default(uuid())
   name        String
@@ -38,6 +48,8 @@ model Product {
   stock       Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
   cartItems   CartItem[]
   orderItems  OrderItem[]
 }

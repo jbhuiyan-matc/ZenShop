@@ -1,16 +1,18 @@
-import { Routes, Route } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
-import Layout from './components/Layout'
+import { Routes, Route } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import Layout from './components/Layout';
 
 // Lazy-loaded page components for code-splitting
-const Home = lazy(() => import('./pages/Home'))
-const ProductListing = lazy(() => import('./pages/ProductListing'))
-const ProductDetail = lazy(() => import('./pages/ProductDetail'))
-const Cart = lazy(() => import('./pages/Cart'))
-const Checkout = lazy(() => import('./pages/Checkout'))
-const Login = lazy(() => import('./pages/Login'))
-const Register = lazy(() => import('./pages/Register'))
-const NotFound = lazy(() => import('./pages/NotFound'))
+const Home = lazy(() => import('./pages/Home'));
+const Products = lazy(() => import('./pages/Products'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+
+// Placeholder components for pages not yet created
+const ProductDetail = () => <div className="p-8 text-center">Product Detail Page - Coming Soon</div>;
+const Cart = () => <div className="p-8 text-center">Cart Page - Coming Soon</div>;
+const Checkout = () => <div className="p-8 text-center">Checkout Page - Coming Soon</div>;
+const NotFound = () => <div className="p-8 text-center text-2xl">404 - Page Not Found</div>;
 
 function App() {
   return (
@@ -18,7 +20,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="products" element={<ProductListing />} />
+          <Route path="products" element={<Products />} />
           <Route path="products/:id" element={<ProductDetail />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
@@ -28,7 +30,7 @@ function App() {
         </Route>
       </Routes>
     </Suspense>
-  )
+  );
 }
 
-export default App
+export default App;

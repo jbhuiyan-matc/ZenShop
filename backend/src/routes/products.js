@@ -14,13 +14,37 @@ const productSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive('Price must be positive'),
   imageUrl: z.string().url('Invalid image URL').optional().nullable(),
-  stock: z.number().int().nonnegative('Stock cannot be negative')
+  stock: z.number().int().nonnegative('Stock cannot be negative'),
+  categoryId: z.string().optional().nullable()
 });
 
-// Get all products
+// Get all products with optional category filter
 router.get('/', async (req, res, next) => {
   try {
-    const products = await prisma.product.findMany();
+    const { categoryId, search } = req.query;
+    
+    const where = {};
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
     res.json(products);
   } catch (error) {
     logger.error('Error fetching products:', error);
@@ -32,7 +56,15 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const product = await prisma.product.findUnique({
-      where: { id: req.params.id }
+      where: { id: req.params.id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
     });
 
     if (!product) {
@@ -55,7 +87,16 @@ router.post('/', isAuthenticated, isAdmin, validateRequest(productSchema), async
         description: req.body.description,
         price: req.body.price,
         imageUrl: req.body.imageUrl,
-        stock: req.body.stock
+        stock: req.body.stock,
+        categoryId: req.body.categoryId
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       }
     });
 
@@ -76,7 +117,16 @@ router.put('/:id', isAuthenticated, isAdmin, validateRequest(productSchema), asy
         description: req.body.description,
         price: req.body.price,
         imageUrl: req.body.imageUrl,
-        stock: req.body.stock
+        stock: req.body.stock,
+        categoryId: req.body.categoryId
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
       }
     });
 

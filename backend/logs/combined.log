@@ -1,0 +1,14 @@
+2026-02-03T23:38:07.944Z INFO: Server running on port 5000
+2026-02-03T23:38:24.222Z INFO: Server running on port 5000
+2026-02-03T23:40:30.638Z INFO: Server running on port 5000
+2026-02-03T23:41:55.662Z INFO: Server running on port 5000
+2026-02-03T23:42:59.015Z INFO: Server running on port 5000
+2026-02-04T00:18:46.512Z INFO: Server running on port 5000
+2026-02-04T00:20:14.749Z INFO: Server running on port 5000
+2026-02-04T00:21:01.034Z INFO: Server running on port 5000
+2026-02-04T00:21:15.527Z INFO: ::ffff:185.199.110.133 - - [04/Feb/2026:00:21:15 +0000] "GET /health HTTP/1.1" 200 54 "-" "curl/8.7.1"
+2026-02-04T00:23:27.495Z INFO: Server running on port 5000
+2026-02-04T00:23:50.897Z INFO: ::ffff:185.199.110.133 - - [04/Feb/2026:00:23:50 +0000] "GET /api/products HTTP/1.1" 200 3962 "-" "curl/8.7.1"
+2026-02-04T00:24:08.116Z INFO: ::ffff:185.199.110.133 - - [04/Feb/2026:00:24:08 +0000] "GET /api/categories HTTP/1.1" 200 936 "-" "curl/8.7.1"
+2026-02-04T00:35:07.079Z INFO: ::ffff:185.199.110.133 - - [04/Feb/2026:00:35:07 +0000] "GET /api HTTP/1.1" 404 21 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+2026-02-04T00:35:08.108Z INFO: ::ffff:185.199.110.133 - - [04/Feb/2026:00:35:08 +0000] "GET /favicon.ico HTTP/1.1" 404 21 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"

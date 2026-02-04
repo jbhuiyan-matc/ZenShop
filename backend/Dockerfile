@@ -12,11 +12,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
-
 # Expose port
 EXPOSE 5000
 
-# Start simple test server instead of full application
-CMD ["node", "src/simple-server.js"]
+# Regenerate Prisma client at runtime to ensure correct binary target
+CMD npx prisma generate && npm run dev
