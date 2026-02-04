@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CreditCard, Truck, CheckCircle } from 'lucide-react';
+import { CreditCard, Truck, CheckCircle, Minus, Plus } from 'lucide-react';
 import { useAtom } from 'jotai';
 import { ordersAPI, cartAPI } from '../services/api';
 import { cartAtom, userAtom } from '../store/atoms';
@@ -13,6 +13,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null);
 
   const [shippingInfo, setShippingInfo] = useState({
     fullName: user?.name || '',
@@ -30,6 +31,21 @@ export default function Checkout() {
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setStep(2);
+  };
+
+  const updateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    setUpdating(itemId);
+    try {
+      await cartAPI.updateQuantity(itemId, newQuantity);
+      setCart(cart.map((item: CartItem) => 
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      ));
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const handlePlaceOrder = async () => {
@@ -279,10 +295,29 @@ export default function Checkout() {
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
           <div className="space-y-3 mb-4">
             {cart.map((item: CartItem) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-gray-600">
-                  {item.product?.name} × {item.quantity}
-                </span>
+              <div key={item.id} className="flex justify-between items-center text-sm">
+                <div className="flex-1">
+                  <span className="text-gray-600 block">{item.product?.name}</span>
+                  <div className="flex items-center mt-1 space-x-2">
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      disabled={updating === item.id || item.quantity <= 1}
+                      className="p-1 text-gray-500 hover:text-blue-600 disabled:opacity-30"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="text-gray-900 font-medium w-4 text-center">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      disabled={updating === item.id}
+                      className="p-1 text-gray-500 hover:text-blue-600 disabled:opacity-30"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
                 <span className="font-medium">
                   ${((Number(item.product?.price) || 0) * item.quantity).toFixed(2)}
                 </span>

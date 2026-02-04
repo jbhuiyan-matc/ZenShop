@@ -14,6 +14,11 @@ const cartItemSchema = z.object({
   quantity: z.number().int().positive('Quantity must be a positive integer')
 });
 
+// Schema for updating cart item (quantity only)
+const updateCartItemSchema = z.object({
+  quantity: z.number().int().positive('Quantity must be a positive integer')
+});
+
 // Get cart for current user
 router.get('/', isAuthenticated, async (req, res, next) => {
   try {
@@ -84,7 +89,7 @@ router.post('/', isAuthenticated, validateRequest(cartItemSchema), async (req, r
 });
 
 // Update cart item quantity
-router.put('/:id', isAuthenticated, validateRequest(cartItemSchema), async (req, res, next) => {
+router.put('/:id', isAuthenticated, validateRequest(updateCartItemSchema), async (req, res, next) => {
   try {
     const { quantity } = req.body;
     const { id } = req.params;
