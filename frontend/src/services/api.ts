@@ -77,6 +77,9 @@ export const ordersAPI = {
   getOrderById: (id: string) => 
     api.get<Order>(`/orders/${id}`),
   
+  create: (data: { shippingAddress: string; items: { productId: string; quantity: number }[] }) => 
+    api.post<Order>('/orders', data),
+  
   createOrder: (items: { productId: string; quantity: number }[]) => 
     api.post<Order>('/orders', { items }),
   

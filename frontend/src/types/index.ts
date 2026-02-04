@@ -54,7 +54,8 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   userId: string;
-  orderItems: OrderItem[];
+  orderItems?: OrderItem[];
+  items?: OrderItem[];
   user?: User;
 }
 

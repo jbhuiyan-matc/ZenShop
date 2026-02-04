@@ -5,14 +5,23 @@ import Layout from './components/Layout';
 // Lazy-loaded page components for code-splitting
 const Home = lazy(() => import('./pages/Home'));
 const Products = lazy(() => import('./pages/Products'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Orders = lazy(() => import('./pages/Orders'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 
-// Placeholder components for pages not yet created
-const ProductDetail = () => <div className="p-8 text-center">Product Detail Page - Coming Soon</div>;
-const Cart = () => <div className="p-8 text-center">Cart Page - Coming Soon</div>;
-const Checkout = () => <div className="p-8 text-center">Checkout Page - Coming Soon</div>;
-const NotFound = () => <div className="p-8 text-center text-2xl">404 - Page Not Found</div>;
+// 404 page
+const NotFound = () => (
+  <div className="text-center py-16">
+    <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
+    <p className="text-2xl text-gray-600 mb-8">Page Not Found</p>
+    <a href="/" className="text-blue-600 hover:text-blue-800 font-medium">
+      ← Back to Home
+    </a>
+  </div>
+);
 
 function App() {
   return (
@@ -24,6 +33,7 @@ function App() {
           <Route path="products/:id" element={<ProductDetail />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
+          <Route path="orders" element={<Orders />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
