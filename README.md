@@ -74,10 +74,15 @@ The easiest way to run ZenShop is using Docker. This will set up the frontend, b
     ```
 
 2.  **Run the Start Script**
-    ```bash
-    chmod +x start-local.sh
-    ./start-local.sh
-    ```
+    *   **macOS / Linux:**
+        ```bash
+        chmod +x start-local.sh
+        ./start-local.sh
+        ```
+    *   **Windows (PowerShell):**
+        ```powershell
+        ./start-local.ps1
+        ```
     
     *Or manually:*
     ```bash
