@@ -5,8 +5,9 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "npx prisma migrate deploy && node prisma/seed.js && node src/index.js",
     "dev": "nodemon src/index.js",
+    "build": "npx prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
