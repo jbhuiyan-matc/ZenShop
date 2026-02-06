@@ -79,9 +79,9 @@ The easiest way to run ZenShop is using Docker. This will set up the frontend, b
         chmod +x start-local.sh
         ./start-local.sh
         ```
-    *   **Windows (PowerShell):**
-        ```powershell
-        ./start-local.ps1
+    *   **Windows (Command Prompt or PowerShell):**
+        ```cmd
+        start-local.bat
         ```
     
     *Or manually:*
