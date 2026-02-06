@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, User, Menu, LogOut, Package } from 'lucide-react'
 import { useState } from 'react'
-import { useApp } from '../store/AppContext'
+import { useApp } from '../store/useApp'
 
 /**
  * Navbar Component

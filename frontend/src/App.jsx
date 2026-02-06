@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
-import { useApp } from './store/AppContext';
+import { useApp } from './store/useApp';
 import { authAPI, cartAPI } from './services/api';
 import Layout from './components/Layout';
 

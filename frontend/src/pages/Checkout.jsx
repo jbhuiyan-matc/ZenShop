@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { ordersAPI, cartAPI } from '../services/api';
 import { CreditCard, MapPin, Loader } from 'lucide-react';
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { cartAPI } from '../services/api';
 
 export default function Cart() {

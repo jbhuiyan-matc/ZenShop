@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, ShoppingCart, DollarSign, AlertTriangle } from 'lucide-react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { adminAPI } from '../services/api';
 
 export default function Admin() {

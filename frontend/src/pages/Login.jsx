@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { authAPI, cartAPI } from '../services/api';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 

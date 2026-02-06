@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { productsAPI, categoriesAPI, cartAPI } from '../services/api';
 
 export default function Home() {

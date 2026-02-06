@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Check, AlertCircle } from 'lucide-react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { productsAPI, cartAPI } from '../services/api';
 
 export default function ProductDetail() {

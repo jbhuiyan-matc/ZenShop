@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp } from '../store/useApp';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export default function Toast() {
