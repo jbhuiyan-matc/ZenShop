@@ -24,3 +24,4 @@ coverage
 
 # SSL Certificates
 infra/nginx/ssl/
+zenshop-frontend@0.1.0
