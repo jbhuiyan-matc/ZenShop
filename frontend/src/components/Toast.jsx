@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import { useAtom } from 'jotai';
-import { toastAtom } from '../store/atoms';
+import { useApp } from '../store/AppContext';
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 export default function Toast() {
-  const [toast, setToast] = useAtom(toastAtom);
+  const { toast, setToast } = useApp();
 
   useEffect(() => {
     if (toast) {

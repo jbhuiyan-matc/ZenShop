@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { ordersAPI, cartAPI } from '../services/api';
-import { cartAtom, userAtom } from '../store/atoms';
 import { CreditCard, MapPin, Loader } from 'lucide-react';
 
 export default function Checkout() {
-  const [cart, setCart] = useAtom(cartAtom);
-  const [user] = useAtom(userAtom);
+  const { cart, setCart, user } = useApp();
   const navigate = useNavigate();
   
   const [address, setAddress] = useState('');
@@ -26,7 +24,7 @@ export default function Checkout() {
   const subtotal = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
   const total = subtotal;
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
     setLoading(true);
     

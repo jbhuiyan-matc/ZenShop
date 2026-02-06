@@ -22,10 +22,9 @@ The platform features:
 
 | Component | Technology | Description |
 |-----------|------------|-------------|
-| **Frontend** | React, Vite, TypeScript | Fast, type-safe UI with TailwindCSS. |
-| **Backend** | Node.js, Express | RESTful API with robust security middleware. |
-| **Database** | PostgreSQL + Prisma | Relational data storage with type-safe ORM. |
-| **Hosting** | Railway | Cloud deployment with managed PostgreSQL. |
+| **Frontend** | React | UI built with TailwindCSS. |
+| **Backend** | Node.js, Express | RESTful API with security middleware. |
+| **Database** | PostgreSQL + Prisma | Managed on Railway. Prisma handles database access safely. |
 
 ## Features
 

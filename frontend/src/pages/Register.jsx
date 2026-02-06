@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { authAPI } from '../services/api';
-import { userAtom, toastAtom } from '../store/atoms';
 import { User, Mail, Lock, AlertCircle, UserPlus } from 'lucide-react';
 
 export default function Register() {
@@ -12,8 +11,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useAtom(userAtom);
-  const [, setToast] = useAtom(toastAtom);
+  const { user, setUser, setToast } = useApp();
   const navigate = useNavigate();
 
   // Redirect if already logged in
@@ -21,7 +19,7 @@ export default function Register() {
     navigate('/');
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -38,19 +36,17 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await authAPI.register({ name, email, password });
-      const { token, user } = response.data;
+      const { token, user: userData } = await authAPI.register({ name, email, password });
       
       // Default to persistent storage for new accounts
       localStorage.setItem('token', token);
       sessionStorage.removeItem('token');
       
-      setUser(user);
+      setUser(userData);
       setToast({ message: 'Account created successfully!', type: 'success' });
       navigate('/');
     } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      const msg = error.response?.data?.message || 'Registration failed. Please try again.';
+      const msg = err.response?.data?.message || 'Registration failed. Please try again.';
       setError(msg);
       setToast({ message: msg, type: 'error' });
     } finally {

@@ -1,26 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, ShoppingCart, DollarSign, AlertTriangle } from 'lucide-react';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { adminAPI } from '../services/api';
-import { userAtom, isAuthRestoringAtom } from '../store/atoms';
-import type { Order } from '../types';
-
-interface AdminStats {
-  totalOrders: number;
-  totalRevenue: number;
-  activeProducts: number;
-  lowStockProducts: number;
-  recentOrders: Order[];
-}
 
 export default function Admin() {
   const navigate = useNavigate();
-  const [user] = useAtom(userAtom);
-  const [isAuthRestoring] = useAtom(isAuthRestoringAtom);
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const { user, isAuthRestoring } = useApp();
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [updating, setUpdating] = useState(null);
 
   useEffect(() => {
     // Wait for auth to be restored before checking role
@@ -33,8 +22,8 @@ export default function Admin() {
 
     const fetchStats = async () => {
       try {
-        const response = await adminAPI.getStats();
-        setStats(response.data);
+        const data = await adminAPI.getStats();
+        setStats(data);
       } catch (error) {
         console.error('Error fetching admin stats:', error);
       } finally {
@@ -55,14 +44,14 @@ export default function Admin() {
 
   if (!stats) return null;
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const handleStatusUpdate = async (orderId, newStatus) => {
     if (!stats) return;
     setUpdating(orderId);
     try {
       await adminAPI.updateOrderStatus(orderId, newStatus);
       // Update local state
       const updatedOrders = stats.recentOrders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus as Order['status'] } : order
+        order.id === orderId ? { ...order, status: newStatus } : order
       );
       setStats({ ...stats, recentOrders: updatedOrders });
     } catch (error) {
@@ -72,16 +61,6 @@ export default function Admin() {
       setUpdating(null);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!stats) return null;
 
   return (
     <div className="max-w-7xl mx-auto">

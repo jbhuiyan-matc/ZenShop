@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import App from './App.tsx'
+import { AppProvider } from './store/AppContext'
+import App from './App.jsx'
 import './index.css'
 
 /**
@@ -11,6 +12,7 @@ import './index.css'
  * Wraps the App component with:
  * - React.StrictMode: For highlighting potential problems in the application.
  * - BrowserRouter: To enable client-side routing via react-router-dom.
+ * - AppProvider: Global state management via React Context.
  */
 
 const rootElement = document.getElementById('root');
@@ -22,7 +24,9 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <AppProvider>
+        <App />
+      </AppProvider>
     </BrowserRouter>
   </React.StrictMode>,
 )

@@ -1,8 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, User, Menu, LogOut, Package } from 'lucide-react'
-import { useState, ReactNode } from 'react'
-import { useAtom } from 'jotai'
-import { cartAtom, userAtom, toastAtom } from '../store/atoms'
+import { useState } from 'react'
+import { useApp } from '../store/AppContext'
 
 /**
  * Navbar Component
@@ -14,9 +13,7 @@ import { cartAtom, userAtom, toastAtom } from '../store/atoms'
 const Navbar = () => {
   // State to manage mobile menu visibility
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [cart, setCart] = useAtom(cartAtom)
-  const [user, setUser] = useAtom(userAtom)
-  const [, setToast] = useAtom(toastAtom)
+  const { cart, setCart, user, setUser, setToast } = useApp()
   const navigate = useNavigate()
   
   // Calculate total items in cart
@@ -135,7 +132,7 @@ const Navbar = () => {
 };
 
 // Helper component for consistent Desktop Nav Links
-const NavLink = ({ to, children }: { to: string; children: ReactNode }) => (
+const NavLink = ({ to, children }) => (
   <Link 
     to={to} 
     className="text-neutral-900 hover:text-brand font-medium transition-colors"
@@ -145,7 +142,7 @@ const NavLink = ({ to, children }: { to: string; children: ReactNode }) => (
 )
 
 // Helper component for consistent Mobile Nav Links
-const MobileNavLink = ({ to, onClick, children }: { to: string; onClick: () => void; children: ReactNode }) => (
+const MobileNavLink = ({ to, onClick, children }) => (
   <Link 
     to={to} 
     className="text-neutral-900 hover:text-brand font-medium transition-colors px-2 py-1 hover:bg-gray-50 rounded"

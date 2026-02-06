@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Clock, CheckCircle, XCircle, Truck } from 'lucide-react';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { ordersAPI } from '../services/api';
-import { userAtom } from '../store/atoms';
-import type { Order } from '../types';
 
-const statusIcons: Record<string, JSX.Element> = {
+const statusIcons = {
   PENDING_PAYMENT: <Clock className="text-yellow-500" size={20} />,
   PAID: <CheckCircle className="text-green-500" size={20} />,
   SHIPPED: <Truck className="text-blue-500" size={20} />,
@@ -14,7 +12,7 @@ const statusIcons: Record<string, JSX.Element> = {
   CANCELLED: <XCircle className="text-red-500" size={20} />,
 };
 
-const statusColors: Record<string, string> = {
+const statusColors = {
   PENDING_PAYMENT: 'bg-yellow-100 text-yellow-800',
   PAID: 'bg-green-100 text-green-800',
   SHIPPED: 'bg-blue-100 text-blue-800',
@@ -23,9 +21,9 @@ const statusColors: Record<string, string> = {
 };
 
 export default function Orders() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user] = useAtom(userAtom);
+  const { user } = useApp();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -34,8 +32,8 @@ export default function Orders() {
         return;
       }
       try {
-        const response = await ordersAPI.getOrders();
-        setOrders(response.data);
+        const data = await ordersAPI.getOrders();
+        setOrders(data);
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {
@@ -134,9 +132,8 @@ export default function Orders() {
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = 'https://placehold.co/100x100?text=No+Image';
-                            target.onerror = null;
+                            e.target.src = 'https://placehold.co/100x100?text=No+Image';
+                            e.target.onerror = null;
                           }}
                         />
                       ) : (

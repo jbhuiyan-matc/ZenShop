@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
-import { useAtom } from 'jotai';
-import { userAtom, cartAtom, isAuthRestoringAtom } from './store/atoms';
+import { useApp } from './store/AppContext';
 import { authAPI, cartAPI } from './services/api';
 import Layout from './components/Layout';
 
@@ -36,9 +35,7 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 // =========================================
 
 function App() {
-  const [, setUser] = useAtom(userAtom);
-  const [, setCart] = useAtom(cartAtom);
-  const [, setIsAuthRestoring] = useAtom(isAuthRestoringAtom);
+  const { setUser, setCart, setIsAuthRestoring } = useApp();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -48,13 +45,13 @@ function App() {
       if (token) {
         try {
           // Fetch user profile
-          const userRes = await authAPI.getProfile();
-          setUser(userRes.data);
+          const userData = await authAPI.getProfile();
+          setUser(userData);
           
           // Fetch cart
           try {
-            const cartRes = await cartAPI.getCart();
-            setCart(cartRes.data);
+            const cartData = await cartAPI.getCart();
+            setCart(cartData);
           } catch (cartError) {
             console.error('Failed to fetch cart', cartError);
           }

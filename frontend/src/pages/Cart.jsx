@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { cartAPI } from '../services/api';
-import { cartAtom, userAtom, isAuthRestoringAtom } from '../store/atoms';
 
 export default function Cart() {
-  const [user] = useAtom(userAtom);
-  const [isAuthRestoring] = useAtom(isAuthRestoringAtom);
-  const [cart, setCart] = useAtom(cartAtom);
+  const { user, isAuthRestoring, cart, setCart } = useApp();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCart = async () => {
       try {
         setLoading(true);
-        const response = await cartAPI.getCart();
-        setCart(response.data);
+        const data = await cartAPI.getCart();
+        setCart(data);
       } catch (error) {
         console.error('Error fetching cart:', error);
       } finally {
@@ -34,7 +31,7 @@ export default function Cart() {
     }
   }, [user, isAuthRestoring, setCart]);
 
-  const updateQuantity = async (itemId: string, newQuantity: number) => {
+  const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
     try {
       await cartAPI.updateQuantity(itemId, newQuantity);
@@ -47,7 +44,7 @@ export default function Cart() {
     }
   };
 
-  const removeItem = async (itemId: string) => {
+  const removeItem = async (itemId) => {
     try {
       await cartAPI.removeFromCart(itemId);
       setCart(prev => prev.filter(item => item.id !== itemId));
@@ -57,7 +54,7 @@ export default function Cart() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
-  const shipping: number = 0; // Free shipping for now
+  const shipping = 0; // Free shipping for now
   const total = subtotal + shipping;
 
   if (!user) {
@@ -110,9 +107,8 @@ export default function Cart() {
                     alt={item.product.name} 
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'https://placehold.co/100x100?text=No+Image';
-                      target.onerror = null;
+                      e.target.src = 'https://placehold.co/100x100?text=No+Image';
+                      e.target.onerror = null;
                     }}
                   />
                 ) : (

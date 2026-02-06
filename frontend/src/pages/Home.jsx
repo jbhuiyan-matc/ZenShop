@@ -1,35 +1,31 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { productsAPI, categoriesAPI, cartAPI } from '../services/api';
-import { cartAtom, userAtom, toastAtom } from '../store/atoms';
-import type { Product, Category } from '../types';
 
-export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [, setCart] = useAtom(cartAtom);
-  const [user] = useAtom(userAtom);
-  const [, setToast] = useAtom(toastAtom);
+  const { setCart, user, setToast } = useApp();
 
   const selectedCategory = searchParams.get('category');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
+        const [productsData, categoriesData] = await Promise.all([
           productsAPI.getAll({
             categoryId: selectedCategory || undefined,
             search: searchQuery || undefined
           }),
           categoriesAPI.getAll()
         ]);
-        setProducts(productsRes.data);
-        setCategories(categoriesRes.data);
+        setProducts(productsData);
+        setCategories(categoriesData);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -40,15 +36,14 @@ export default function Products() {
     fetchData();
   }, [selectedCategory, searchQuery]);
 
-  const addToCart = async (productId: string) => {
+  const addToCart = async (productId) => {
     if (!user) {
       setToast({ message: 'Please login to add items to cart', type: 'info' });
       return;
     }
     try {
-      const response = await cartAPI.addToCart(productId, 1);
-      const updatedItem = response.data;
-
+      const updatedItem = await cartAPI.addToCart(productId, 1);
+      
       setCart((prevCart) => {
         const itemExists = prevCart.find(item => item.id === updatedItem.id);
         if (itemExists) {
@@ -58,7 +53,7 @@ export default function Products() {
         }
         return [...prevCart, updatedItem];
       });
-
+      
       setToast({ message: 'Added to cart!', type: 'success' });
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -66,7 +61,7 @@ export default function Products() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     // Search is handled by the useEffect dependency
   };
@@ -81,12 +76,17 @@ export default function Products() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">All Products</h1>
+      <div className="text-center py-8">
+        <h1 className="text-4xl font-extrabold text-neutral-900 mb-4">Welcome to ZenShop</h1>
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          Secure, simple, and fast. Browse our collection below.
+        </p>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-lg shadow-sm">
         {/* Category Filter */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
           <button
             onClick={() => setSearchParams({})}
             className={`px-4 py-2 rounded-lg transition-colors ${
@@ -141,9 +141,8 @@ export default function Products() {
                   alt={product.name}
                   className="h-full w-full object-cover"
                   onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = 'https://placehold.co/600x400?text=No+Image';
-                    target.onerror = null;
+                    e.target.src = 'https://placehold.co/600x400?text=No+Image';
+                    e.target.onerror = null;
                   }}
                 />
               ) : (
@@ -151,7 +150,7 @@ export default function Products() {
               )}
             </div>
             <div className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
+              <h3 className="font-semibold text-lg mb-2 truncate">{product.name}</h3>
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-blue-600">${product.price}</span>

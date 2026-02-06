@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { authAPI, cartAPI } from '../services/api';
-import { userAtom, cartAtom, toastAtom } from '../store/atoms';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 
 export default function Login() {
@@ -11,9 +10,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useAtom(userAtom);
-  const [, setCart] = useAtom(cartAtom);
-  const [, setToast] = useAtom(toastAtom);
+  const { user, setUser, setCart, setToast } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,14 +19,13 @@ export default function Login() {
     navigate('/orders');
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await authAPI.login({ email, password });
-      const { token, user } = response.data;
+      const { token, user: userData } = await authAPI.login({ email, password });
       
       // Save token based on 'Remember Me' preference
       if (rememberMe) {
@@ -41,13 +37,13 @@ export default function Login() {
       }
       
       // Update global state
-      setUser(user);
+      setUser(userData);
       setToast({ message: 'Successfully logged in!', type: 'success' });
       
       // Fetch user's cart
       try {
-        const cartResponse = await cartAPI.getCart();
-        setCart(cartResponse.data);
+        const cartData = await cartAPI.getCart();
+        setCart(cartData);
       } catch (cartError) {
         console.error('Failed to fetch cart', cartError);
       }
@@ -56,8 +52,7 @@ export default function Login() {
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      const msg = error.response?.data?.message || 'Invalid email or password';
+      const msg = err.response?.data?.message || 'Invalid email or password';
       setError(msg);
       setToast({ message: msg, type: 'error' });
     } finally {

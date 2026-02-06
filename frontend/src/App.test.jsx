@@ -4,15 +4,16 @@
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
+import { AppProvider } from './store/AppContext';
 import App from './App';
 
 // Mock the API modules to prevent network calls during tests
 vi.mock('./services/api', () => ({
   authAPI: {
-    getProfile: vi.fn().mockResolvedValue({ data: { id: '1', name: 'Test User', role: 'USER' } }),
+    getProfile: vi.fn().mockResolvedValue({ id: '1', name: 'Test User', role: 'USER' }),
   },
   cartAPI: {
-    getCart: vi.fn().mockResolvedValue({ data: [] }),
+    getCart: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -23,7 +24,9 @@ describe('App', () => {
   it('renders loading state initially', () => {
     render(
       <BrowserRouter>
-        <App />
+        <AppProvider>
+          <App />
+        </AppProvider>
       </BrowserRouter>
     );
     

@@ -1,30 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, ArrowLeft, Check, AlertCircle } from 'lucide-react';
-import { useAtom } from 'jotai';
+import { useApp } from '../store/AppContext';
 import { productsAPI, cartAPI } from '../services/api';
-import { cartAtom, userAtom, toastAtom } from '../store/atoms';
-import type { Product } from '../types';
 
 export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
-  const [, setCart] = useAtom(cartAtom);
-  const [user] = useAtom(userAtom);
-  const [, setToast] = useAtom(toastAtom);
+  const { setCart, user, setToast } = useApp();
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
       try {
-        const response = await productsAPI.getById(id);
-        setProduct(response.data);
+        const data = await productsAPI.getById(id);
+        setProduct(data);
       } catch (err) {
         console.error('Error fetching product:', err);
         setError('Product not found or an error occurred.');
@@ -51,8 +47,8 @@ export default function ProductDetail() {
       await cartAPI.addToCart(product.id, quantity);
       
       // Refresh cart to ensure sync
-      const cartResponse = await cartAPI.getCart();
-      setCart(cartResponse.data);
+      const cartData = await cartAPI.getCart();
+      setCart(cartData);
       
       setToast({ message: 'Added to cart!', type: 'success' });
     } catch (err) {
@@ -101,9 +97,8 @@ export default function ProductDetail() {
                 alt={product.name}
                 className="max-h-full max-w-full object-contain"
                 onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = 'https://placehold.co/600x400?text=No+Image';
-                  target.onerror = null;
+                  e.target.src = 'https://placehold.co/600x400?text=No+Image';
+                  e.target.onerror = null;
                 }}
               />
             ) : (
