@@ -93,7 +93,3 @@ This application adheres to industry standards to ensure data integrity and user
 - **OWASP Top 10 (2021)** compliance.
 - **CIS Benchmarks** for server hardening.
 - **PCI-DSS** best practices for data handling (non-payment scope).
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
