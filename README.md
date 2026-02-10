@@ -34,7 +34,8 @@ The platform features:
 - **Shopping Cart**: Real-time cart management.
 
 ## Backend Working Image
-<img width="1485" height="797" alt="image" src="https://github.com/user-attachments/assets/8a0783e2-66d0-4858-803e-faacc5d0349e" />
+<img width="1635" height="917" alt="image" src="https://github.com/user-attachments/assets/dbdefd79-db12-425d-8851-5ec53b8db0a3" />
+
 
 
 ### Security & Administration
