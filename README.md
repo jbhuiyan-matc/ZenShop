@@ -33,6 +33,10 @@ The platform features:
 - **Product Catalog**: View products with detailed descriptions and images.
 - **Shopping Cart**: Real-time cart management.
 
+## Backend Working Image
+<img width="1485" height="797" alt="image" src="https://github.com/user-attachments/assets/8a0783e2-66d0-4858-803e-faacc5d0349e" />
+
+
 ### Security & Administration
 - **Role-Based Access Control (RBAC)**: Distinct permissions for Customers vs. Admins.
 - **Security Controls**:
