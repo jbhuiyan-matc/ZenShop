@@ -120,6 +120,8 @@ If you prefer to run everything manually without Docker, follow these steps:
 
 ## Architecture Diagram
 ![Network Architecture Diagram](./network-diagram.png)
+Update:
+<img width="1220" height="737" alt="image" src="https://github.com/user-attachments/assets/f768cac4-41db-4b50-a3f4-17d4fe1fae0a" />
 
 ## Security Considerations
 
