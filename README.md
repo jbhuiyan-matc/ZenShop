@@ -34,12 +34,7 @@ The platform features:
 - **Intuitive Interface**: Clean and responsive design.
 - **Product Catalog**: View products with detailed descriptions and images.
 - **Shopping Cart**: Real-time cart management.
-
-## Backend Working Image
-<img width="1635" height="917" alt="image" src="https://github.com/user-attachments/assets/dbdefd79-db12-425d-8851-5ec53b8db0a3" />
-
-
-
+  
 ### Security & Administration
 - **Role-Based Access Control (RBAC)**: Distinct permissions for Customers vs. Admins.
 - **Security Controls**:
