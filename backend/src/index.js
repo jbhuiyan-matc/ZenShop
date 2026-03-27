@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from './utils/logger.js';
 import { initializeRedis } from './utils/redis.js';
-import { initializePrisma, closePrisma } from './utils/database.js';
+import { initializePrisma } from './utils/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -153,7 +153,7 @@ app.use((req, res) => {
 });
 
 // Global Error Handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   logger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
   
   // Send a generic message in production, detailed error in development

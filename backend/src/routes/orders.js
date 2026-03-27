@@ -35,7 +35,7 @@ router.get('/', isAuthenticated, async (req, res, next) => {
 router.get('/:id', isAuthenticated, async (req, res, next) => {
   try {
     const { id } = req.params;
-    const order = await prisma.order.findUnique({
+    const order = await getPrismaClient().order.findUnique({
       where: { id },
       include: {
         orderItems: {
@@ -61,7 +61,7 @@ router.get('/:id', isAuthenticated, async (req, res, next) => {
  */
 router.post('/', isAuthenticated, async (req, res, next) => {
   try {
-    const { items, shippingAddress } = req.body;
+    const { items } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'No items provided' });
@@ -73,7 +73,7 @@ router.post('/', isAuthenticated, async (req, res, next) => {
 
     // Process items sequentially to validate logic (could be parallelized but safer here)
     for (const item of items) {
-      const product = await prisma.product.findUnique({ where: { id: item.productId } });
+      const product = await getPrismaClient().product.findUnique({ where: { id: item.productId } });
       
       if (!product) {
         return res.status(400).json({ error: `Product ${item.productId} not found` });
@@ -92,7 +92,7 @@ router.post('/', isAuthenticated, async (req, res, next) => {
     }
 
     // Create Order Transaction
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await getPrismaClient().$transaction(async (tx) => {
       // 1. Create Order
       const newOrder = await tx.order.create({
         data: {

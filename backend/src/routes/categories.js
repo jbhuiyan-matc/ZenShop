@@ -50,7 +50,7 @@ router.get('/:id', cacheMiddleware(300), async (req, res, next) => {
   try {
     const { id } = req.params;
     
-    const category = await prisma.category.findUnique({
+    const category = await getPrismaClient().category.findUnique({
       where: { id },
       include: {
         products: {
@@ -86,7 +86,7 @@ router.post('/', isAuthenticated, isAdmin, validateRequest(categorySchema), asyn
   try {
     const { name, description, imageUrl } = req.body;
 
-    const category = await prisma.category.create({
+    const category = await getPrismaClient().category.create({
       data: {
         name,
         description,
@@ -120,12 +120,12 @@ router.put('/:id', isAuthenticated, isAdmin, validateRequest(categorySchema), as
     const { name, description, imageUrl } = req.body;
 
     // Check if category exists
-    const existingCategory = await prisma.category.findUnique({ where: { id } });
+    const existingCategory = await getPrismaClient().category.findUnique({ where: { id } });
     if (!existingCategory) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    const updatedCategory = await prisma.category.update({
+    const updatedCategory = await getPrismaClient().category.update({
       where: { id },
       data: {
         name,
@@ -159,7 +159,7 @@ router.delete('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
     const { id } = req.params;
 
     // Check if category exists
-    const existingCategory = await prisma.category.findUnique({ where: { id } });
+    const existingCategory = await getPrismaClient().category.findUnique({ where: { id } });
     if (!existingCategory) {
       return res.status(404).json({ error: 'Category not found' });
     }
@@ -168,7 +168,7 @@ router.delete('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
     // For now, we'll assume cascading delete or manual cleanup is handled by DB or user intent.
     // If Prisma schema doesn't cascade, this might fail if products exist.
     
-    await prisma.category.delete({
+    await getPrismaClient().category.delete({
       where: { id }
     });
 

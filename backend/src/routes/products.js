@@ -2,7 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { logger } from '../utils/logger.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
-import { getRedisClient, clearCache } from '../utils/redis.js';
+import { clearCache } from '../utils/redis.js';
 import { cacheMiddleware } from '../middleware/cache.js';
 import { validateRequest } from '../middleware/validate.js';
 import { getPrisma } from '../utils/database.js';
@@ -137,14 +137,6 @@ router.post('/',
         }
       });
 
-      // Log this administrative action
-      await createAuditLog(
-        req.user.id, 
-        'CREATE_PRODUCT', 
-        { productId: product.id, name: product.name }, 
-        req
-      );
-
       logger.info(`Product created: ${product.id} by user ${req.user.id}`);
       
       // Clear products cache
@@ -189,14 +181,6 @@ router.put('/:id',
         }
       });
 
-      // Log this administrative action
-      await createAuditLog(
-        req.user.id, 
-        'UPDATE_PRODUCT', 
-        { productId: product.id, changes: req.body }, 
-        req
-      );
-
       logger.info(`Product updated: ${product.id} by user ${req.user.id}`);
       
       // Clear products cache
@@ -232,14 +216,6 @@ router.delete('/:id',
       await getPrismaClient().product.delete({
         where: { id }
       });
-
-      // Log this administrative action
-      await createAuditLog(
-        req.user.id, 
-        'DELETE_PRODUCT', 
-        { productId: id, name: existingProduct.name }, 
-        req
-      );
 
       logger.info(`Product deleted: ${id} by user ${req.user.id}`);
       
