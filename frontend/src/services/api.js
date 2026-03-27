@@ -1,7 +1,7 @@
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' && window.location.origin.startsWith('http://localhost')
-    ? 'http://localhost:5001/api'
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
     : `${window.location.origin}/api`);
 
 function getToken() {

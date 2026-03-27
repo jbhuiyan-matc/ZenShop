@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger.js';
+import { getPrisma } from '../utils/database.js';
 
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 /**
  * Middleware: isAuthenticated
@@ -27,10 +27,10 @@ export const isAuthenticated = async (req, res, next) => {
     const token = authHeader.split(' ')[1];
     
     // 2. Verify JWT signature and expiration
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     
     // 3. Retrieve user from database to ensure they still exist and have access
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: decoded.id },
       select: { id: true, email: true, role: true } // Only select necessary fields
     });
@@ -94,7 +94,7 @@ export const isAdmin = (req, res, next) => {
  */
 export const createAuditLog = async (userId, action, details, req) => {
   try {
-    await prisma.auditLog.create({
+    await getPrismaClient().auditLog.create({
       data: {
         userId,
         action,

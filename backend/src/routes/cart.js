@@ -1,10 +1,10 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import { isAuthenticated } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { getPrisma } from '../utils/database.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 /**
  * GET /api/cart
@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
  */
 router.get('/', isAuthenticated, async (req, res, next) => {
   try {
-    const cartItems = await prisma.cartItem.findMany({
+    const cartItems = await getPrismaClient().cartItem.findMany({
       where: { userId: req.user.id },
       include: { product: true },
       orderBy: { createdAt: 'asc' }
@@ -37,7 +37,7 @@ router.post('/', isAuthenticated, async (req, res, next) => {
     }
 
     // Check if product exists and has stock
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await getPrismaClient().product.findUnique({ where: { id: productId } });
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -46,7 +46,7 @@ router.post('/', isAuthenticated, async (req, res, next) => {
     }
 
     // Upsert cart item
-    const existingItem = await prisma.cartItem.findUnique({
+    const existingItem = await getPrismaClient().cartItem.findUnique({
       where: {
         userId_productId: {
           userId: req.user.id,
@@ -57,13 +57,13 @@ router.post('/', isAuthenticated, async (req, res, next) => {
 
     let cartItem;
     if (existingItem) {
-      cartItem = await prisma.cartItem.update({
+      cartItem = await getPrismaClient().cartItem.update({
         where: { id: existingItem.id },
         data: { quantity: existingItem.quantity + quantity },
         include: { product: true }
       });
     } else {
-      cartItem = await prisma.cartItem.create({
+      cartItem = await getPrismaClient().cartItem.create({
         data: {
           userId: req.user.id,
           productId,
@@ -94,12 +94,12 @@ router.put('/:id', isAuthenticated, async (req, res, next) => {
     }
 
     // Ensure item belongs to user
-    const item = await prisma.cartItem.findUnique({ where: { id } });
+    const item = await getPrismaClient().cartItem.findUnique({ where: { id } });
     if (!item || item.userId !== req.user.id) {
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    const updatedItem = await prisma.cartItem.update({
+    const updatedItem = await getPrismaClient().cartItem.update({
       where: { id },
       data: { quantity },
       include: { product: true }
@@ -121,12 +121,12 @@ router.delete('/:id', isAuthenticated, async (req, res, next) => {
     const { id } = req.params;
 
     // Ensure item belongs to user
-    const item = await prisma.cartItem.findUnique({ where: { id } });
+    const item = await getPrismaClient().cartItem.findUnique({ where: { id } });
     if (!item || item.userId !== req.user.id) {
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    await prisma.cartItem.delete({ where: { id } });
+    await getPrismaClient().cartItem.delete({ where: { id } });
     res.status(204).end();
   } catch (error) {
     logger.error('Error removing cart item:', error);
@@ -140,7 +140,7 @@ router.delete('/:id', isAuthenticated, async (req, res, next) => {
  */
 router.delete('/', isAuthenticated, async (req, res, next) => {
   try {
-    await prisma.cartItem.deleteMany({
+    await getPrismaClient().cartItem.deleteMany({
       where: { userId: req.user.id }
     });
     res.status(204).end();

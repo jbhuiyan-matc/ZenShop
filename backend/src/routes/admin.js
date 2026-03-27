@@ -1,10 +1,10 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { getPrisma } from '../utils/database.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 /**
  * @route   GET /api/admin/stats
@@ -15,22 +15,23 @@ router.get('/stats', isAuthenticated, isAdmin, async (req, res, next) => {
   try {
     // Run all count queries in parallel for performance
     const [totalOrders, totalRevenue, activeProducts, lowStockProducts] = await Promise.all([
-      prisma.order.count(),
-      prisma.order.aggregate({
+      getPrismaClient().order.count(),
+      getPrismaClient().order.aggregate({
         _sum: {
           total: true
         }
       }),
-      prisma.product.count({
+      getPrismaClient().product.count({
         where: { stock: { gt: 0 } }
       }),
-      prisma.product.count({
+      getPrismaClient().product.count({
         where: { stock: { lte: 10 } }
-      })
+      }),
+      getPrismaClient().user.count()
     ]);
 
     // Get recent orders for the dashboard widget
-    const recentOrders = await prisma.order.findMany({
+    const recentOrders = await getPrismaClient().order.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {

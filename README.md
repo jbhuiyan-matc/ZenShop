@@ -51,33 +51,63 @@ The platform features:
 ### Prerequisites
 - Node.js 18+
 - PostgreSQL (local instance or cloud)
+- Docker and Docker Compose (Optional, for containerized setup)
 
 ### Setup
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/jbhuiyan-matc/ZenShop.git
+    git clone git@github.com:jbhuiyan-matc/ZenShop.git
+    # Or via HTTPS: git clone https://github.com/jbhuiyan-matc/ZenShop.git
     cd ZenShop
     ```
 
-2.  **Install & Run Backend**
+### Run with Docker (Recommended)
+
+The easiest way to get the entire stack (Database, Redis, and Backend) running locally is using Docker Compose.
+
+1. **Start the services**
+   ```bash
+   docker-compose up -d
+   ```
+   This will start PostgreSQL, Redis, and the Node.js backend API on `http://localhost:5000`.
+
+2. **Run the Frontend** (in a separate terminal)
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   The frontend will be available at `http://localhost:3000`.
+
+*Note: For more advanced Docker configurations and resilience testing, refer to the [DOCKER_RESILIENCE_GUIDE.md](./DOCKER_RESILIENCE_GUIDE.md).*
+
+### Run with NPM (Standard)
+
+If you prefer to run everything manually without Docker, follow these steps:
+
+1.  **Install & Run Backend**
     ```bash
     cd backend
     npm install
+    
+    # Ensure your local PostgreSQL and Redis are running, then set up the DB
     npx prisma generate
     npx prisma migrate dev
     npm run seed
+    
+    # Start the server
     npm run dev
     ```
 
-3.  **Install & Run Frontend** (in a separate terminal)
+2.  **Install & Run Frontend** (in a separate terminal)
     ```bash
     cd frontend
     npm install
     npm run dev
     ```
 
-4.  **Access the Application**
+3.  **Access the Application**
     - Frontend: [http://localhost:3000](http://localhost:3000)
     - Backend API: [http://localhost:5000](http://localhost:5000)
 

@@ -1,25 +1,25 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { validateRequest } from '../middleware/validate.js';
 import { isAuthenticated } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { getPrisma } from '../utils/database.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 // Validation Schemas
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters')
+  password: z.string().min(8, 'Password must be at least 8 characters')
 });
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Name is too short'),
+  name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters')
+  password: z.string().min(8, 'Password must be at least 8 characters')
 });
 
 /**
@@ -30,7 +30,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await getPrismaClient().user.findUnique({ where: { email } });
 
     if (!user || !user.passwordHash) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -64,14 +64,14 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await getPrismaClient().user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(409).json({ message: 'Email already in use' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
+    const user = await getPrismaClient().user.create({
       data: {
         name,
         email,
@@ -101,7 +101,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
  */
 router.get('/me', isAuthenticated, async (req, res, next) => {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: req.user.id },
       select: {
         id: true,

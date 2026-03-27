@@ -8,6 +8,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from './utils/logger.js';
+import { initializeRedis } from './utils/redis.js';
+import { initializePrisma, closePrisma } from './utils/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +27,17 @@ dotenv.config();
 
 // Initialize Express application
 const app = express();
+
+// Initialize connections with retry logic
+const initializeConnections = async () => {
+  await initializePrisma();
+  await initializeRedis();
+};
+
+initializeConnections().catch((error) => {
+  logger.error('Failed to initialize connections:', error);
+  process.exit(1);
+});
 
 // Trust the reverse proxy (Nginx)
 app.set('trust proxy', 1);
@@ -44,7 +57,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some dev tools/react
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:", "https://images.unsplash.com", "https://placehold.co", "https://images.pexels.com"],
-      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:5001"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000"],
       fontSrc: ["'self'", "https:", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -56,7 +69,7 @@ app.use(helmet({
 
 // Enable Cross-Origin Resource Sharing (CORS)
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
   credentials: true, // Allow cookies to be sent across domains
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

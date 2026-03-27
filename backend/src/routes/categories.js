@@ -1,12 +1,14 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { validateRequest } from '../middleware/validate.js';
-import { isAuthenticated, isAdmin } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { isAuthenticated, isAdmin } from '../middleware/auth.js';
+import { validateRequest } from '../middleware/validate.js';
+import { cacheMiddleware } from '../middleware/cache.js';
+import { clearCache } from '../utils/redis.js';
+import { getPrisma } from '../utils/database.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 /**
  * Validation Schemas
@@ -22,9 +24,9 @@ const categorySchema = z.object({
  * @desc    Get all categories with product counts
  * @access  Public
  */
-router.get('/', async (req, res, next) => {
+router.get('/', cacheMiddleware(300), async (req, res, next) => {
   try {
-    const categories = await prisma.category.findMany({
+    const categories = await getPrismaClient().category.findMany({
       include: {
         _count: {
           select: { products: true }
@@ -44,7 +46,7 @@ router.get('/', async (req, res, next) => {
  * @desc    Get a single category by ID with its products
  * @access  Public
  */
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', cacheMiddleware(300), async (req, res, next) => {
   try {
     const { id } = req.params;
     
@@ -93,6 +95,10 @@ router.post('/', isAuthenticated, isAdmin, validateRequest(categorySchema), asyn
     });
 
     logger.info(`Category created: ${category.id} (${category.name}) by Admin ${req.user.id}`);
+    
+    // Clear categories cache
+    await clearCache('cache:/api/categories*');
+    
     res.status(201).json(category);
   } catch (error) {
     if (error.code === 'P2002') {
@@ -129,6 +135,10 @@ router.put('/:id', isAuthenticated, isAdmin, validateRequest(categorySchema), as
     });
 
     logger.info(`Category updated: ${id} by Admin ${req.user.id}`);
+    
+    // Clear categories cache
+    await clearCache('cache:/api/categories*');
+    
     res.json(updatedCategory);
   } catch (error) {
     if (error.code === 'P2002') {
@@ -163,6 +173,10 @@ router.delete('/:id', isAuthenticated, isAdmin, async (req, res, next) => {
     });
 
     logger.info(`Category deleted: ${id} by Admin ${req.user.id}`);
+    
+    // Clear categories cache
+    await clearCache('cache:/api/categories*');
+    
     res.status(204).end();
   } catch (error) {
     // Handle foreign key constraint violations if products are linked

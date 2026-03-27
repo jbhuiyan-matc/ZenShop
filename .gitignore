@@ -25,3 +25,15 @@ coverage
 # SSL Certificates
 infra/nginx/ssl/
 zenshop-frontend@0.1.0
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# Prisma
+*.db
+*.db-journal
+
+# OS generated files
+Thumbs.db
+

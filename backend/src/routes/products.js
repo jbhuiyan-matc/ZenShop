@@ -1,12 +1,14 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
-import { validateRequest } from '../middleware/validate.js';
-import { isAuthenticated, isAdmin, createAuditLog } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { isAuthenticated, isAdmin } from '../middleware/auth.js';
+import { getRedisClient, clearCache } from '../utils/redis.js';
+import { cacheMiddleware } from '../middleware/cache.js';
+import { validateRequest } from '../middleware/validate.js';
+import { getPrisma } from '../utils/database.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 // =========================================
 // Validation Schemas
@@ -35,7 +37,7 @@ const productSchema = z.object({
  * 
  * @access Public
  */
-router.get('/', async (req, res, next) => {
+router.get('/', cacheMiddleware(300), async (req, res, next) => {
   try {
     const { categoryId, search } = req.query;
     const where = {};
@@ -49,7 +51,7 @@ router.get('/', async (req, res, next) => {
         where.categoryId = categoryId;
       } else {
         // If not UUID, try to find category by name (case-insensitive)
-        const category = await prisma.category.findFirst({
+        const category = await getPrismaClient().category.findFirst({
           where: {
             name: {
               equals: categoryId,
@@ -75,7 +77,7 @@ router.get('/', async (req, res, next) => {
       ];
     }
 
-    const products = await prisma.product.findMany({
+    const products = await getPrismaClient().product.findMany({
       where,
       orderBy: { createdAt: 'desc' } // Return newest products first
     });
@@ -94,11 +96,11 @@ router.get('/', async (req, res, next) => {
  * @access Public
  * @param {string} id - The product ID
  */
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', cacheMiddleware(300), async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const product = await prisma.product.findUnique({
+    const product = await getPrismaClient().product.findUnique({
       where: { id }
     });
 
@@ -125,7 +127,7 @@ router.post('/',
   validateRequest(productSchema), 
   async (req, res, next) => {
     try {
-      const product = await prisma.product.create({
+      const product = await getPrismaClient().product.create({
         data: {
           name: req.body.name,
           description: req.body.description,
@@ -144,6 +146,10 @@ router.post('/',
       );
 
       logger.info(`Product created: ${product.id} by user ${req.user.id}`);
+      
+      // Clear products cache
+      await clearCache('cache:/api/products*');
+      
       res.status(201).json(product);
     } catch (error) {
       logger.error('Error creating product:', error);
@@ -167,12 +173,12 @@ router.put('/:id',
       const { id } = req.params;
 
       // Check if product exists first
-      const existingProduct = await prisma.product.findUnique({ where: { id } });
+      const existingProduct = await getPrismaClient().product.findUnique({ where: { id } });
       if (!existingProduct) {
         return res.status(404).json({ error: 'Product not found' });
       }
 
-      const product = await prisma.product.update({
+      const product = await getPrismaClient().product.update({
         where: { id },
         data: {
           name: req.body.name,
@@ -192,6 +198,10 @@ router.put('/:id',
       );
 
       logger.info(`Product updated: ${product.id} by user ${req.user.id}`);
+      
+      // Clear products cache
+      await clearCache('cache:/api/products*');
+      
       res.status(200).json(product);
     } catch (error) {
       logger.error(`Error updating product ${req.params.id}:`, error);
@@ -214,12 +224,12 @@ router.delete('/:id',
       const { id } = req.params;
 
       // Check if product exists first
-      const existingProduct = await prisma.product.findUnique({ where: { id } });
+      const existingProduct = await getPrismaClient().product.findUnique({ where: { id } });
       if (!existingProduct) {
         return res.status(404).json({ error: 'Product not found' });
       }
 
-      await prisma.product.delete({
+      await getPrismaClient().product.delete({
         where: { id }
       });
 
@@ -232,6 +242,10 @@ router.delete('/:id',
       );
 
       logger.info(`Product deleted: ${id} by user ${req.user.id}`);
+      
+      // Clear products cache
+      await clearCache('cache:/api/products*');
+      
       res.status(204).end();
     } catch (error) {
       logger.error(`Error deleting product ${req.params.id}:`, error);

@@ -1,10 +1,10 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
 import { isAuthenticated } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import { getPrisma } from '../utils/database.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const getPrismaClient = () => getPrisma();
 
 /**
  * GET /api/orders
@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
  */
 router.get('/', isAuthenticated, async (req, res, next) => {
   try {
-    const orders = await prisma.order.findMany({
+    const orders = await getPrismaClient().order.findMany({
       where: { userId: req.user.id },
       include: {
         orderItems: {
