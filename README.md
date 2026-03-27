@@ -24,7 +24,9 @@ The platform features:
 |-----------|------------|-------------|
 | **Frontend** | React | UI built with TailwindCSS. |
 | **Backend** | Node.js, Express | RESTful API with security middleware. |
-| **Database** | PostgreSQL + Prisma | Managed on Railway. Prisma handles database access safely. |
+| **Database** | PostgreSQL + Prisma | Managed on Railway or locally via Docker. |
+| **Caching** | Redis | In-memory caching for improved performance. |
+| **Infrastructure**| Docker | Containerized deployment via Docker Compose. |
 
 ## Features
 
@@ -120,6 +122,9 @@ If you prefer to run everything manually without Docker, follow these steps:
 │   └── prisma/         # Database schema & migrations
 └── package.json        # Root build config for deployment
 ```
+
+## Architecture Diagram
+![Network Architecture Diagram](./network-diagram.png)
 
 ## Security Considerations
 
