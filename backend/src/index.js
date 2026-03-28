@@ -7,9 +7,12 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import session from 'express-session';
+import passport from 'passport';
 import { logger } from './utils/logger.js';
 import { initializeRedis } from './utils/redis.js';
 import { initializePrisma } from './utils/database.js';
+import configurePassport from './config/passport.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +24,7 @@ import cartRoutes from './routes/cart.js';
 import orderRoutes from './routes/orders.js';
 import categoryRoutes from './routes/categories.js';
 import adminRoutes from './routes/admin.js';
+import ssoRoutes from './routes/sso.js';
 
 // Load environment variables
 dotenv.config();
@@ -42,6 +46,26 @@ initializeConnections().catch((error) => {
 // Trust the reverse proxy (Nginx)
 app.set('trust proxy', 1);
 
+// Configure Passport for SSO
+configurePassport();
+
+// Session configuration for SSO
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'zenshop-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax'
+  }
+}));
+
+// Initialize Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
@@ -57,7 +81,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some dev tools/react
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:", "https://images.unsplash.com", "https://placehold.co", "https://images.pexels.com"],
-      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000", "https://matcsecdesignc.com"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000", "https://matcsecdesignc.com", process.env.AUTHENTIK_ISSUER].filter(Boolean),
       fontSrc: ["'self'", "https:", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -158,6 +182,9 @@ app.get('/health', (req, res) => {
     uptime: process.uptime()
   });
 });
+
+// SSO Authentication Routes
+app.use('/auth', ssoRoutes);
 
 // API Routes
 app.use('/api/products', productRoutes);
