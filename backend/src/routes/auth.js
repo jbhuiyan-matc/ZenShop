@@ -45,7 +45,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res, next) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'secret',
-      { expiresIn: '7d' }
+      { expiresIn: '400d' }
     );
 
     logger.info(`User logged in: ${email}`);
@@ -84,7 +84,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res, next)
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'secret',
-      { expiresIn: '7d' }
+      { expiresIn: '400d' }
     );
 
     logger.info(`New user registered: ${email}`);
