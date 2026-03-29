@@ -6,8 +6,6 @@
 ![Status](https://img.shields.io/badge/Status-Live-success)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
-**Live Demo:** [https://zenshop-production.up.railway.app](https://zenshop-production.up.railway.app)
-
 ## About
 
 ZenShop is a full-stack e-commerce application designed with a security-first approach. It demonstrates secure coding practices and robust application design.
