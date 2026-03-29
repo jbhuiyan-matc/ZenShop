@@ -187,6 +187,10 @@ const bootstrap = async () => {
     });
   });
 
+ app.get('/api', (req, res) => {
+  res.json({ message: 'ZenShop API is running' });
+ });
+
   // SSO Authentication Routes
   app.use('/auth', ssoRoutes);
 
