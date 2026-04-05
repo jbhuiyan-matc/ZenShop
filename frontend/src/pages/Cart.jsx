@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useApp } from '../store/useApp';
 import { cartAPI } from '../services/api';
 import Button from '../components/ui/Button';
-import Card, { CardBody } from '../components/ui/Card';
 
 export default function Cart() {
   const { cart, setCart, user, setToast } = useApp();
@@ -90,7 +89,7 @@ export default function Cart() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
         <p className="text-gray-500 mb-8 max-w-md mx-auto">
-          Looks like you haven't added anything to your cart yet. Browse our products to find something you'll love.
+          Looks like you haven&apos;t added anything to your cart yet. Browse our products to find something you&apos;ll love.
         </p>
         <Button variant="primary" to="/products" className="inline-flex items-center">
           Start Shopping

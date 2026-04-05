@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../services/api';
 import { useApp } from '../store/useApp';
-import { AlertCircle, Lock, Mail, User } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
-import Card, { CardBody, CardHeader } from '../components/ui/Card';
+import Card, { CardBody } from '../components/ui/Card';
 
 export default function Login() {
   const [email, setEmail] = useState('');

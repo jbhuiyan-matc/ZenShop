@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Clock, MapPin, CheckCircle, Truck, XCircle, ArrowRight } from 'lucide-react';
 import { ordersAPI } from '../services/api';
@@ -121,7 +121,7 @@ export default function Orders() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">No orders found</h2>
         <p className="text-gray-500 mb-8 max-w-md mx-auto">
-          You haven't placed any orders yet. When you do, their status and tracking info will appear here.
+          You haven&apos;t placed any orders yet. When you do, their status and tracking info will appear here.
         </p>
         <Button variant="primary" to="/products" className="inline-flex items-center">
           Start Shopping

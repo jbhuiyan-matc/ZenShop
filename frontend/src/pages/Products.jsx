@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, Filter, ShoppingCart, Eye, AlertCircle } from 'lucide-react';
 import { productsAPI, categoriesAPI, cartAPI } from '../services/api';
 import { useApp } from '../store/useApp';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
 import Card, { CardBody, CardFooter } from '../components/ui/Card';
 
 export default function Products() {
@@ -285,7 +284,7 @@ export default function Products() {
               <Search className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No products found</h3>
               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-                We couldn't find anything matching your current filters. Try adjusting your search criteria.
+                We couldn&apos;t find anything matching your current filters. Try adjusting your search criteria.
               </p>
               <Button variant="secondary" onClick={clearFilters}>
                 Clear all filters

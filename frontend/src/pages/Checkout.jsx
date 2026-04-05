@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, CreditCard, Loader, ShoppingBag, ArrowRight } from 'lucide-react';
+import { MapPin, CreditCard, Loader, ArrowRight } from 'lucide-react';
 import { useApp } from '../store/useApp';
 import { ordersAPI, cartAPI } from '../services/api';
 import Button from '../components/ui/Button';

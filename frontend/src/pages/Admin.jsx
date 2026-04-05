@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Users, DollarSign, AlertCircle, ShoppingBag, Plus, Edit2, Trash2 } from 'lucide-react';
 import { adminAPI, productsAPI } from '../services/api';

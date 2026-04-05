@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ShoppingCart, Search, Eye } from 'lucide-react';
 import { useApp } from '../store/useApp';
 import { productsAPI, categoriesAPI, cartAPI } from '../services/api';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
 import Card, { CardBody, CardFooter } from '../components/ui/Card';
 
 export default function Home() {
@@ -219,7 +218,7 @@ export default function Home() {
             <Search className="mx-auto h-12 w-12 text-gray-300 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-1">No products found</h3>
             <p className="text-gray-500">
-              We couldn't find anything matching your search. Try adjusting your filters.
+              We couldn&apos;t find anything matching your search. Try adjusting your filters.
             </p>
             <Button 
               variant="secondary" 
