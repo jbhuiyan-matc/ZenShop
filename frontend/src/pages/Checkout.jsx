@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MapPin, CreditCard, Loader, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useApp } from '../store/useApp';
 import { ordersAPI, cartAPI } from '../services/api';
-import { CreditCard, MapPin, Loader } from 'lucide-react';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Card, { CardHeader, CardBody } from '../components/ui/Card';
 
 export default function Checkout() {
-  const { cart, setCart, user } = useApp();
+  const { cart, setCart, user, setToast } = useApp();
   const navigate = useNavigate();
   
   const [address, setAddress] = useState('');
@@ -15,14 +18,15 @@ export default function Checkout() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      setToast({ message: 'Please sign in to checkout', type: 'info' });
+      navigate('/login', { state: { from: { pathname: '/checkout' } } });
     } else if (cart.length === 0) {
       navigate('/cart');
     }
-  }, [user, cart, navigate]);
+  }, [user, cart, navigate, setToast]);
 
   const subtotal = cart.reduce((sum, item) => sum + (Number(item.product.price) * item.quantity), 0);
-  const total = subtotal;
+  const total = subtotal; // Add shipping/tax logic here later if needed
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -37,16 +41,23 @@ export default function Checkout() {
 
       await ordersAPI.create({ shippingAddress, items });
       
-      // Clear cart
+      // Clear cart on server
       try {
           await cartAPI.clearCart(); 
-      } catch (e) { console.warn("Failed to clear cart on server", e) }
-      setCart([]);
+      } catch (e) { 
+          console.warn("Failed to clear cart on server", e);
+      }
       
+      // Clear local cart state
+      setCart([]);
+      setToast({ message: 'Order placed successfully!', type: 'success' });
       navigate('/orders');
     } catch (error) {
       console.error('Order failed:', error);
-      alert('Failed to place order. Please try again.');
+      setToast({ 
+        message: error.response?.data?.error || 'Failed to place order. Please try again.', 
+        type: 'error' 
+      });
     } finally {
       setLoading(false);
     }
@@ -55,137 +66,166 @@ export default function Checkout() {
   if (!user || cart.length === 0) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
+      <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-8">Checkout</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
         {/* Checkout Form */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center mb-4">
-              <MapPin className="text-blue-600 mr-2" />
-              <h2 className="text-xl font-bold">Shipping Address</h2>
-            </div>
-            <form id="checkout-form" onSubmit={handlePlaceOrder} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                <input
-                  type="text"
+        <div className="lg:col-span-7 space-y-8">
+          <Card>
+            <CardHeader className="bg-white border-b border-gray-100 flex items-center py-4 px-6">
+              <div className="bg-brand-light/20 p-2 rounded-full mr-3">
+                <MapPin className="text-brand h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Shipping Information</h2>
+            </CardHeader>
+            <CardBody>
+              <form id="checkout-form" onSubmit={handlePlaceOrder} className="space-y-6">
+                <Input
+                  label="Street Address"
                   required
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123 Main St"
+                  placeholder="123 Main St, Apt 4B"
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input
-                    type="text"
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <Input
+                    label="City"
                     required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="New York"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
-                  <input
-                    type="text"
+                  <Input
+                    label="ZIP / Postal Code"
                     required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     value={zip}
                     onChange={(e) => setZip(e.target.value)}
                     placeholder="10001"
                   />
                 </div>
-              </div>
-            </form>
-          </div>
+              </form>
+            </CardBody>
+          </Card>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center mb-4">
-              <CreditCard className="text-blue-600 mr-2" />
-              <h2 className="text-xl font-bold">Payment Method</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
-                <input
-                  type="text"
+          <Card>
+            <CardHeader className="bg-white border-b border-gray-100 flex items-center py-4 px-6">
+              <div className="bg-brand-light/20 p-2 rounded-full mr-3">
+                <CreditCard className="text-brand h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Payment Details</h2>
+            </CardHeader>
+            <CardBody>
+              <div className="space-y-6">
+                <div className="bg-blue-50 border border-blue-100 text-blue-800 px-4 py-3 rounded-lg text-sm mb-6">
+                  This is a simulation. Do not enter real credit card information. Any data entered will be accepted.
+                </div>
+                
+                <Input
+                  label="Name on Card"
                   required
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  form="checkout-form"
                   placeholder="John Doe"
                 />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                <input
-                  type="text"
+                <Input
+                  label="Card Number"
                   required
+                  form="checkout-form"
                   maxLength={19}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="0000 0000 0000 0000"
                 />
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
-                  <input
-                    type="text"
+                <div className="grid grid-cols-2 gap-6">
+                  <Input
+                    label="Expiration Date"
                     required
+                    form="checkout-form"
                     placeholder="MM/YY"
                     maxLength={5}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                  <input
-                    type="text"
+                  <Input
+                    label="CVV"
                     required
+                    form="checkout-form"
                     maxLength={4}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                     placeholder="123"
                   />
                 </div>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
         </div>
 
-        {/* Order Summary */}
-        <div className="md:col-span-1">
-          <div className="bg-white p-6 rounded-lg shadow-sm sticky top-24">
-            <h2 className="text-lg font-bold mb-4">Order Summary</h2>
-            <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-              {cart.map(item => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span className="truncate flex-1 pr-2">{item.quantity}x {item.product.name}</span>
-                  <span>${(Number(item.product.price) * item.quantity).toFixed(2)}</span>
+        {/* Order Summary Sidebar */}
+        <div className="lg:col-span-5 mt-10 lg:mt-0">
+          <Card className="sticky top-24">
+            <CardHeader className="bg-gray-50 border-b border-gray-100 py-4 px-6">
+              <h2 className="text-lg font-bold text-gray-900">Order Summary</h2>
+            </CardHeader>
+            <CardBody className="p-0">
+              <ul className="divide-y divide-gray-100 max-h-96 overflow-y-auto px-6">
+                {cart.map(item => (
+                  <li key={item.id} className="py-4 flex">
+                    <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+                      {item.product.imageUrl ? (
+                        <img
+                          src={item.product.imageUrl}
+                          alt={item.product.name}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">
+                          No img
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4 flex flex-1 flex-col">
+                      <div>
+                        <div className="flex justify-between text-sm font-medium text-gray-900">
+                          <h3 className="line-clamp-2 pr-4">{item.product.name}</h3>
+                          <p className="ml-4">${(Number(item.product.price) * item.quantity).toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-1 items-end justify-between text-sm mt-1">
+                        <p className="text-gray-500">Qty {item.quantity}</p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              
+              <div className="border-t border-gray-100 px-6 py-6 bg-gray-50/50">
+                <div className="flex items-center justify-between text-base font-medium text-gray-900 mb-6">
+                  <p>Order Total</p>
+                  <p className="text-2xl font-bold text-brand">${total.toFixed(2)}</p>
                 </div>
-              ))}
-            </div>
-            <div className="border-t pt-4 space-y-2 font-medium">
-              <div className="flex justify-between">
-                <span>Total</span>
-                <span className="text-xl text-blue-600">${total.toFixed(2)}</span>
+                <Button
+                  type="submit"
+                  form="checkout-form"
+                  disabled={loading}
+                  className="w-full text-lg py-4 shadow-md flex justify-center items-center"
+                >
+                  {loading ? (
+                    <>
+                      <Loader className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Place Order
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+                <div className="mt-4 flex justify-center text-center text-xs text-gray-500">
+                  <p>
+                    By placing your order, you agree to our Terms of Service and Privacy Policy.
+                  </p>
+                </div>
               </div>
-            </div>
-            <button
-              type="submit"
-              form="checkout-form"
-              disabled={loading}
-              className={`w-full mt-6 bg-neutral-900 text-white py-3 rounded-lg font-bold hover:bg-neutral-800 transition-colors flex justify-center items-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-            >
-              {loading ? <Loader className="animate-spin" /> : 'Place Order'}
-            </button>
-          </div>
+            </CardBody>
+          </Card>
         </div>
       </div>
     </div>

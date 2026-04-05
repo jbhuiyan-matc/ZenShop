@@ -1,23 +1,13 @@
 import express from 'express';
 import { z } from 'zod';
-import { logger } from '../utils/logger.js';
 import { isAuthenticated, isAdmin } from '../middleware/auth.js';
-import { clearCache } from '../utils/redis.js';
 import { cacheMiddleware } from '../middleware/cache.js';
 import { validateRequest } from '../middleware/validate.js';
-import { getPrisma } from '../utils/database.js';
+import * as productController from '../controllers/productController.js';
 
 const router = express.Router();
-const getPrismaClient = () => getPrisma();
 
-// =========================================
 // Validation Schemas
-// =========================================
-
-/**
- * Zod schema for creating and updating products.
- * Enforces strict typing and validation rules.
- */
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required').max(100, 'Name too long'),
   description: z.string().optional(),
@@ -27,206 +17,34 @@ const productSchema = z.object({
   categoryId: z.string().optional().nullable()
 });
 
-// =========================================
-// Route Handlers
-// =========================================
-
 /**
  * GET /api/products
  * Retrieves a list of all products.
- * 
- * @access Public
  */
-router.get('/', cacheMiddleware(300), async (req, res, next) => {
-  try {
-    const { categoryId, search } = req.query;
-    const where = {};
-
-    // Filter by Category (supports ID or Name)
-    if (categoryId) {
-      // Check if input is a valid UUID
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
-
-      if (isUUID) {
-        where.categoryId = categoryId;
-      } else {
-        // If not UUID, try to find category by name (case-insensitive)
-        const category = await getPrismaClient().category.findFirst({
-          where: {
-            name: {
-              equals: categoryId,
-              mode: 'insensitive'
-            }
-          }
-        });
-
-        if (category) {
-          where.categoryId = category.id;
-        } else {
-          // If category name doesn't match, ensure no products are returned
-          where.categoryId = '00000000-0000-0000-0000-000000000000';
-        }
-      }
-    }
-
-    // Filter by Search Query
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
-      ];
-    }
-
-    const products = await getPrismaClient().product.findMany({
-      where,
-      orderBy: { createdAt: 'desc' } // Return newest products first
-    });
-    
-    res.status(200).json(products);
-  } catch (error) {
-    logger.error('Failed to fetch products:', error);
-    next(error);
-  }
-});
+router.get('/', cacheMiddleware(300), productController.getAllProducts);
 
 /**
  * GET /api/products/:id
  * Retrieves a single product by its unique ID.
- * 
- * @access Public
- * @param {string} id - The product ID
  */
-router.get('/:id', cacheMiddleware(300), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const product = await getPrismaClient().product.findUnique({
-      where: { id }
-    });
-
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    res.status(200).json(product);
-  } catch (error) {
-    logger.error(`Failed to fetch product with ID ${req.params.id}:`, error);
-    next(error);
-  }
-});
+router.get('/:id', cacheMiddleware(300), productController.getProductById);
 
 /**
  * POST /api/products
  * Creates a new product in the catalog.
- * 
- * @access Private (Admin only)
  */
-router.post('/', 
-  isAuthenticated, 
-  isAdmin, 
-  validateRequest(productSchema), 
-  async (req, res, next) => {
-    try {
-      const product = await getPrismaClient().product.create({
-        data: {
-          name: req.body.name,
-          description: req.body.description,
-          price: req.body.price,
-          imageUrl: req.body.imageUrl,
-          stock: req.body.stock
-        }
-      });
-
-      logger.info(`Product created: ${product.id} by user ${req.user.id}`);
-      
-      // Clear products cache
-      await clearCache('cache:/api/products*');
-      
-      res.status(201).json(product);
-    } catch (error) {
-      logger.error('Error creating product:', error);
-      next(error);
-    }
-});
+router.post('/', isAuthenticated, isAdmin, validateRequest(productSchema), productController.createProduct);
 
 /**
  * PUT /api/products/:id
  * Updates an existing product's details.
- * 
- * @access Private (Admin only)
- * @param {string} id - The product ID
  */
-router.put('/:id', 
-  isAuthenticated, 
-  isAdmin, 
-  validateRequest(productSchema), 
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
-
-      // Check if product exists first
-      const existingProduct = await getPrismaClient().product.findUnique({ where: { id } });
-      if (!existingProduct) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      const product = await getPrismaClient().product.update({
-        where: { id },
-        data: {
-          name: req.body.name,
-          description: req.body.description,
-          price: req.body.price,
-          imageUrl: req.body.imageUrl,
-          stock: req.body.stock
-        }
-      });
-
-      logger.info(`Product updated: ${product.id} by user ${req.user.id}`);
-      
-      // Clear products cache
-      await clearCache('cache:/api/products*');
-      
-      res.status(200).json(product);
-    } catch (error) {
-      logger.error(`Error updating product ${req.params.id}:`, error);
-      next(error);
-    }
-});
+router.put('/:id', isAuthenticated, isAdmin, validateRequest(productSchema), productController.updateProduct);
 
 /**
  * DELETE /api/products/:id
  * Removes a product from the catalog.
- * 
- * @access Private (Admin only)
- * @param {string} id - The product ID
  */
-router.delete('/:id', 
-  isAuthenticated, 
-  isAdmin, 
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
-
-      // Check if product exists first
-      const existingProduct = await getPrismaClient().product.findUnique({ where: { id } });
-      if (!existingProduct) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      await getPrismaClient().product.delete({
-        where: { id }
-      });
-
-      logger.info(`Product deleted: ${id} by user ${req.user.id}`);
-      
-      // Clear products cache
-      await clearCache('cache:/api/products*');
-      
-      res.status(204).end();
-    } catch (error) {
-      logger.error(`Error deleting product ${req.params.id}:`, error);
-      next(error);
-    }
-});
+router.delete('/:id', isAuthenticated, isAdmin, productController.deleteProduct);
 
 export default router;
