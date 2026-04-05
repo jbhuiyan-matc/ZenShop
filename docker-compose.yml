@@ -42,11 +42,10 @@ services:
       - FRONTEND_URL=https://matcsecdesignc.com
       - JWT_SECRET=9jPtzsfXBCVN73aZKgoxvjCJ97PIm/ppaX8e3KcqTE0=
       - SESSION_SECRET=D0EMs0AhQCHOdop0d4cqSKnSnRlzP93ihT02zP9foo0=
-      - AUTHENTIK_CLIENT_ID=WQrlRR3R36UW3ZxV3tRyJbPP7nLS3xbjiddU2WYg
-      - AUTHENTIK_CLIENT_SECRET=ug47PVaAbS0IVkaQx9zK1hI24ObYvByV7x8ckoF3pkZu9VODwMj2pZbIPNZnDssTdc5FTNgsoUEKcpQlS13VYGRauBpEeHz9pu11VCOxcTVCX7mzYKX9pKS3EQPA1E3Z
-      - AUTHENTIK_ISSUER=https://auth.matcsecdesignc.com/application/o/zenshop
-      - AUTHENTIK_CALLBACK_URL=https://matcsecdesignc.com/auth/callback
-      - AUTHENTIK_LOGOUT_URL=https://auth.matcsecdesignc.com/application/o/zenshop/end-session/
+      - COOKIE_SECURE=true
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/combined-ca-bundle.pem
+    volumes:
+      - ./combined-ca-bundle.pem:/etc/ssl/certs/combined-ca-bundle.pem:ro
     depends_on:
       zenshop-postgres:
         condition: service_healthy

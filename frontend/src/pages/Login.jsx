@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../store/useApp';
 import { authAPI, cartAPI } from '../services/api';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
@@ -12,7 +12,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { user, setUser, setCart, setToast } = useApp();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Redirect if already logged in
   if (user) {
@@ -49,7 +48,7 @@ export default function Login() {
       }
 
       // Redirect to where they came from, or home
-      const from = location.state?.from?.pathname || '/';
+      const from = '/';
       navigate(from, { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || 'Invalid email or password';
@@ -159,6 +158,7 @@ export default function Login() {
             </button>
           </div>
         </form>
+
       </div>
     </div>
   );

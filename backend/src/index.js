@@ -7,13 +7,8 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import session from 'express-session';
-import { RedisStore } from 'connect-redis';
-import passport from 'passport';
 import { logger } from './utils/logger.js';
-import { initializeRedis, getRedisClient } from './utils/redis.js';
 import { initializePrisma } from './utils/database.js';
-import configurePassport from './config/passport.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +20,6 @@ import cartRoutes from './routes/cart.js';
 import orderRoutes from './routes/orders.js';
 import categoryRoutes from './routes/categories.js';
 import adminRoutes from './routes/admin.js';
-import ssoRoutes from './routes/sso.js';
 
 // Load environment variables
 dotenv.config();
@@ -38,15 +32,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Bootstrap: initialize connections, configure all middleware, mount routes, start server
 const bootstrap = async () => {
-  // 1. Connect to database and Redis first
+  // 1. Connect to database
   await initializePrisma();
-  await initializeRedis();
 
   // Trust the reverse proxy (Nginx)
   app.set('trust proxy', 1);
-
-  // Configure Passport for SSO
-  configurePassport();
 
   /* =========================================
      Global Middleware Configuration
@@ -60,7 +50,7 @@ const bootstrap = async () => {
         scriptSrc: ["'self'", "'unsafe-inline'"], // unsafe-inline needed for some dev tools/react
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", "data:", "https:", "https://images.unsplash.com", "https://placehold.co", "https://images.pexels.com"],
-        connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000", "https://matcsecdesignc.com", process.env.AUTHENTIK_ISSUER].filter(Boolean),
+        connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:5000", "https://matcsecdesignc.com"],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
@@ -72,7 +62,7 @@ const bootstrap = async () => {
 
   // Enable Cross-Origin Resource Sharing (CORS)
   app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'https://matcsecdesignc.com'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'https://matcsecdesignc.com', 'http://store2.matcsecdesign.com'],
     credentials: true, // Allow cookies to be sent across domains
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -89,31 +79,6 @@ const bootstrap = async () => {
   app.use(morgan('combined', { 
     stream: { write: message => logger.info(message.trim()) } 
   }));
-
-  // Session configuration for SSO — 400-day persistence via Redis store
-  const redisClient = getRedisClient();
-  const sessionConfig = {
-    secret: process.env.SESSION_SECRET || 'zenshop-session-secret-change-in-production',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 400 * 24 * 60 * 60 * 1000, // 400 days
-      sameSite: 'lax'
-    }
-  };
-  if (redisClient && redisClient.isReady) {
-    sessionConfig.store = new RedisStore({ client: redisClient, prefix: 'zenshop:sess:' });
-    logger.info('Session store: Redis');
-  } else {
-    logger.warn('Redis not available — falling back to in-memory session store');
-  }
-  app.use(session(sessionConfig));
-
-  // Initialize Passport middleware
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   /* =========================================
      Rate Limiting Strategy
@@ -190,9 +155,6 @@ const bootstrap = async () => {
  app.get('/api', (req, res) => {
   res.json({ message: 'ZenShop API is running' });
  });
-
-  // SSO Authentication Routes
-  app.use('/auth', ssoRoutes);
 
   // API Routes
   app.use('/api/products', productRoutes);
