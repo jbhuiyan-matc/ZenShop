@@ -27,7 +27,7 @@ dotenv.config();
 // Initialize Express application
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Bootstrap: initialize connections, configure all middleware, mount routes, start server
@@ -83,10 +83,10 @@ const bootstrap = async () => {
   /* =========================================
      Rate Limiting Strategy
      ========================================= */
-  // Protects the API from brute-force attacks and abuse
+  // Global baseline limiter for all API routes
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minute window
-    max: 1000, // Limit each IP to 1000 requests per window
+    max: 200, // Limit each IP to 200 requests per window
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     message: {
@@ -95,7 +95,43 @@ const bootstrap = async () => {
     }
   });
 
-  // Apply rate limiting to all API routes
+  // Strict limiter for authentication routes (brute-force protection)
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: 'Too many authentication attempts',
+      message: 'Too many login/register attempts. Please try again later.'
+    }
+  });
+
+  // Generous limiter for public read-heavy routes (products, categories)
+  const publicReadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 500,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: 'Too many requests',
+      message: 'You have exceeded the request limit. Please try again later.'
+    }
+  });
+
+  // Moderate limiter for transactional routes (cart, orders)
+  const transactionLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: 'Too many requests',
+      message: 'You have exceeded the request limit for transactions. Please try again later.'
+    }
+  });
+
+  // Apply global baseline limiter to all API routes
   app.use('/api', apiLimiter);
 
   /* =========================================
@@ -156,12 +192,12 @@ const bootstrap = async () => {
   res.json({ message: 'ZenShop API is running' });
  });
 
-  // API Routes
-  app.use('/api/products', productRoutes);
-  app.use('/api/auth', authRoutes);
-  app.use('/api/cart', cartRoutes);
-  app.use('/api/orders', orderRoutes);
-  app.use('/api/categories', categoryRoutes);
+  // API Routes (with route-specific rate limiters)
+  app.use('/api/products', publicReadLimiter, productRoutes);
+  app.use('/api/auth', authLimiter, authRoutes);
+  app.use('/api/cart', transactionLimiter, cartRoutes);
+  app.use('/api/orders', transactionLimiter, orderRoutes);
+  app.use('/api/categories', publicReadLimiter, categoryRoutes);
   app.use('/api/admin', adminRoutes);
 
   /* =========================================
