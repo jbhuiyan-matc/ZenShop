@@ -48,29 +48,21 @@ const Footer = () => {
             </ul>
           </div>
           
-          {/* Legal & Security */}
+          {/* Policies */}
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Security</h3>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">Policies</h3>
             <ul className="space-y-2 text-sm text-neutral-400">
               <li><FooterLink to="/privacy">Privacy Policy</FooterLink></li>
               <li><FooterLink to="/terms">Terms of Service</FooterLink></li>
-              <li><FooterLink to="/security">Security Advisories</FooterLink></li>
-              <li><FooterLink to="/compliance">Compliance</FooterLink></li>
             </ul>
           </div>
         </div>
         
-        {/* Bottom Bar: Copyright & Badges */}
-        <div className="border-t border-neutral-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        {/* Bottom Bar: Copyright */}
+        <div className="border-t border-neutral-800 pt-8 flex justify-center items-center">
           <p className="text-neutral-500 text-xs">
             &copy; {currentYear} ZenShop. All rights reserved.
           </p>
-          
-          <div className="flex items-center space-x-6">
-            <SecurityBadge label="SSL Secured" />
-            <SecurityBadge label="PCI DSS Compliant" />
-            <SecurityBadge label="OWASP Top 10" />
-          </div>
         </div>
       </div>
     </footer>
@@ -82,16 +74,6 @@ const FooterLink = ({ to, children }) => (
   <Link to={to} className="hover:text-brand-light transition-colors">
     {children}
   </Link>
-)
-
-// Helper: Security Badge (Simple Text/Icon placeholder)
-const SecurityBadge = ({ label }) => (
-  <span className="flex items-center text-neutral-500 text-xs font-medium border border-neutral-700 rounded px-2 py-1">
-    <svg className="w-3 h-3 mr-1.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-    {label}
-  </span>
 )
 
 export default Footer
