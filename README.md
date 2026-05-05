@@ -420,7 +420,7 @@ The perimeter firewall requires rules to permit and translate traffic bound for 
 
 <img src="docs/media/image35.png" style="width:5.8in;height:3.61826in" alt="Security Policy" />
 
-*Figure 34. The Firewall Security policy actively enforcing access controls and allowing only approved web application traffic.*
+*Figure 34. The Firewall Security policy actively enforcing access controls and allowing only approved WFA(Web Application Firewall) traffic.*
 
 ### 3.9 Configure DNS Records
 
